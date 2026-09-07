@@ -1,0 +1,38 @@
+[project]
+name = "guanchen-v2"
+version = "0.1.0"
+description = "Traditional culture reasoning and knowledge service AI Agent application"
+readme = "README.md"
+authors = [
+    { name = "liuda112817-alt", email = "liuda112817@gmail.com" }
+]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "langchain-core>=1.6.2",
+    "langchain-deepseek>=1.1.0",
+    "openai>=3.8.0",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "ruff>=0.16.6",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
