@@ -99,6 +99,7 @@ source = { editable = "." }
 dependencies = [
     { name = "langchain-core" },
     { name = "langchain-deepseek" },
+    { name = "lunar-python" },
     { name = "openai" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -115,6 +116,7 @@ dev = [
 requires-dist = [
     { name = "langchain-core", specifier = ">=1.6.2" },
     { name = "langchain-deepseek", specifier = ">=1.1.0" },
+    { name = "lunar-python", specifier = ">=1.4.8" },
     { name = "openai", specifier = ">=3.8.0" },
     { name = "pydantic", specifier = ">=2.13.5" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
@@ -353,6 +355,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/f4/b7/74d0992a461eacad8
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0a/e1/5c751a0f1a14de49f19a2ebc0f5dfadfaf04a07f245c5f749ec31f263715/langsmith-0.12.2-py3-none-any.whl", hash = "sha256:ca2b6386cf452cf8edebf27c9c476503c18bad895e7ad566578393fa0ba7fea2", size = 760692, upload-time = "2026-09-05T20:26:18.166Z" },
 ]
+
+[[package]]
+name = "lunar-python"
+version = "1.4.8"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/59/45/5154c95ae7feaab7ca508e71c3288692c09952dfe33b03b7c2f18a32e2cd/lunar_python-1.4.8.tar.gz", hash = "sha256:3aa11cc73c25e70ddf0ba5bdac7398c03acc9491a3aa512a91c9642973b669d6", size = 105862, upload-time = "2025-11-05T12:31:53.353Z" }
 
 [[package]]
 name = "openai"
