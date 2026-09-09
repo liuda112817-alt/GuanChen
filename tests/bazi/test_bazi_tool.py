@@ -46,19 +46,17 @@ def test_calculate_bazi_tool_successful_invocation():
     """验证 Tool 调用链路返回一个可序列化的 JSON 兼容字典对象。"""
     mock_service = Mock()
     mock_chart = Mock(spec=BaziChart)
-    mock_chart.model_dump.return_value = {"day_master": "甲", "year_pillar": {}}
+    mock_chart.model_dump_json.return_value = '{"day_master": "甲"}'
     mock_service.calculate.return_value = mock_chart
 
     bazi_tool = build_calculate_bazi_tool(service=mock_service)
 
-    # 模拟 LangChain runtime 传过来的标准 payload
-    result = bazi_tool.invoke(
-        {"year": 2000, "month": 1, "day": 1, "hour": 12, "minute": 0, "gender": "male"}
-    )
+    assert bazi_tool.response_format == "content_and_artifact"
 
-    assert isinstance(result, dict)
-    assert result["day_master"] == "甲"
-    mock_service.calculate.assert_called_once()
+    # 验证底层函数确实返回了 (字符串，原实体对象) 元组
+    content, artifact = bazi_tool.func(year=2000, month=1, day=1, hour=12, minute=0, gender="male")
+    assert content == '{"day_master": "甲"}'
+    assert artifact is mock_chart
 
 
 def test_calculate_bazi_tool_missing_fields_rejected():

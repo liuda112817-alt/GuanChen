@@ -7,6 +7,7 @@ from langchain_core.messages import AIMessage
 from openai import APIStatusError
 from pydantic import BaseModel
 
+import guanchen_v2.llm.client
 from guanchen_v2.llm.client import LLMClient
 from guanchen_v2.llm.exceptions import (
     LLMEmptyResponseError,
@@ -93,3 +94,31 @@ def test_transient_provider_failure_exhausts_retries(llm_client, fake_model):
         llm_client.text("hello")
 
     assert fake_model.invoke.call_count == 3
+
+
+def test_from_settings_delegates_to_builder(monkeypatch):
+    """
+    重构回归测试：验证 LLMClient.from_settings 确实将模型构造委托给了 provider 层，
+    并保留了自身的应用级 retry 控制权。
+    """
+    # 1. 伪造一个 BaseChatModel 实例
+    fake_model = Mock(spec=BaseChatModel)
+
+    # 2. 拦截 client 模块中的 build_chat_model 函数引用
+    mock_build_chat_model = Mock(return_value=fake_model)
+    monkeypatch.setattr(guanchen_v2.llm.client, "build_chat_model", mock_build_chat_model)
+
+    # 3. 伪造 Settings 以避免真实环境变量文件的干扰
+    mock_settings = Mock()
+    mock_settings.llm_max_retries = 3
+
+    # 4. 执行被测构造方法
+    client = LLMClient.from_settings(mock_settings)
+
+    # 5. 断言验证：确实发生了一次无损的参数委托
+    mock_build_chat_model.assert_called_once_with(settings=mock_settings)
+
+    # 6. （可选的防御性断言）在 Python 中我们可以直接验证内部组装是否成功
+    # 证明装配后的模型就是工厂吐出的模型，且保留了 settings 里的 retry 次数
+    assert client._model is fake_model
+    assert client._max_retries == 3

@@ -3,7 +3,6 @@ from typing import Any, TypeVar
 from langchain_core.exceptions import OutputParserException
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableLambda
-from langchain_deepseek import ChatDeepSeek
 from openai import APIConnectionError, APIError, APIStatusError
 from pydantic import BaseModel, ValidationError
 
@@ -17,6 +16,7 @@ from guanchen_v2.llm.exceptions import (
     LLMStructuredOutputError,
     LLMTransientProviderError,
 )
+from guanchen_v2.llm.provider import build_chat_model
 
 StructuredT = TypeVar("StructuredT", bound=BaseModel)
 
@@ -54,14 +54,7 @@ class LLMClient:
 
     @classmethod
     def from_settings(cls, settings: Settings) -> "LLMClient":
-        model = ChatDeepSeek(
-            api_key=settings.deepseek_api_key.get_secret_value(),
-            model=settings.deepseek_model,
-            temperature=settings.llm_temperature,
-            timeout=settings.llm_timeout_seconds,
-            max_retries=0,
-            extra_body={"thinking": {"type": "disabled"}},
-        )
+        model = build_chat_model(settings=settings)
         return cls(
             model=model,
             max_retries=settings.llm_max_retries,

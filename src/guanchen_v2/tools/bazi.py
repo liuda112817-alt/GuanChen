@@ -1,15 +1,15 @@
-from typing import Any
+from typing import Tuple
 
 from langchain_core.tools import BaseTool, tool
 
 from guanchen_v2.bazi.service import BaziService
-from guanchen_v2.models.bazi import BirthProfile, Gender
+from guanchen_v2.models.bazi import BaziChart, BirthProfile, Gender
 
 
 def build_calculate_bazi_tool(service: BaziService) -> BaseTool:
     """创建并返回针对 LLM 环境的排盘工具。"""
 
-    @tool("calculate_bazi", args_schema=BirthProfile)
+    @tool("calculate_bazi", args_schema=BirthProfile, response_format="content_and_artifact")
     def calculate_bazi(
         year: int,
         month: int,
@@ -18,7 +18,7 @@ def build_calculate_bazi_tool(service: BaziService) -> BaseTool:
         minute: int,
         gender: Gender,
         birth_place_text: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> Tuple[str, BaziChart]:
         """
         根据完整的公历出生年月日时分与性别执行确定性八字排盘，返回四柱、日主、十神、藏干和大运基础结果。
         仅用于排盘事实计算，不负责命理解读。
@@ -39,6 +39,6 @@ def build_calculate_bazi_tool(service: BaziService) -> BaseTool:
         chart = service.calculate(profile)
 
         # 强制转换为 JSON 兼容的字典结构，防止不可控的文本拼接
-        return chart.model_dump(mode="json")
+        return chart.model_dump_json(indent=2), chart
 
     return calculate_bazi
