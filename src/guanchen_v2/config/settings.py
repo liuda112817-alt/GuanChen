@@ -20,3 +20,5 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
     llm_timeout_seconds: float = Field(default=30.0, gt=0.0)
     llm_max_retries: int = Field(default=2, ge=0, le=5)
+
+    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/guanchen"

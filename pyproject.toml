@@ -8,13 +8,21 @@ authors = [
 ]
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "asyncpg>=0.31.0",
+    "bm25s>=0.3.11",
+    "jieba>=0.42.1",
     "langchain>=1.4.0",
     "langchain-core>=1.6.2",
     "langchain-deepseek>=1.1.0",
+    "langchain-text-splitters>=1.1.2",
     "lunar-python>=1.4.8",
     "openai>=3.8.0",
+    "pgvector>=0.5.0",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",
+    "sentence-transformers>=6.0.1",
+    "sqlalchemy>=2.0.52",
+    "torch>=2.14.0",
 ]
 
 [build-system]
@@ -25,12 +33,13 @@ build-backend = "uv_build"
 dev = [
     "httpx>=0.28.1",
     "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
     "ruff>=0.16.6",
 ]
 
 [tool.ruff]
 target-version = "py312"
-line-length = 100
+line-length = 110
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
@@ -38,3 +47,14 @@ select = ["E", "F", "I"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pytest.ini_options]
+addopts = "-m 'not smoke and not integration'"
+markers = [
+    "smoke: marks tests as real model smoke tests (slow)",
+    "integration: marks tests that require external services like PostgreSQL",
+]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore:invalid escape sequence.*:SyntaxWarning:jieba.*"
+]

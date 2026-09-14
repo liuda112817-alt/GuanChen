@@ -1,8 +1,9 @@
 from enum import StrEnum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from guanchen_v2.knowledge.models import Citation
 from guanchen_v2.models.bazi import BaziChart, BirthProfile, Gender
 
 
@@ -70,10 +71,25 @@ class ReadyForBazi(BaseModel):
 class BaziInterpretation(BaseModel):
     """大模型负责的结构化最终解释（仅限解释，不包含排盘事实）"""
 
+    model_config = ConfigDict(extra="forbid")
+
     answer: str = Field(
         min_length=1,
         description="围绕用户原问题，基于 calculate_bazi 提供的排盘事实生成的传统命理解读。",
     )
+    used_chunk_ids: list[str] = Field(
+        default_factory=list,
+        description="实际在回答中被引用和参考的 BAZI KNOWLEDGE EVIDENCE 中的 chunk_id 列表。没用则留空。",
+    )
+
+    @model_validator(mode="after")
+    def _validate_logic(self):
+        if not self.answer.strip():
+            raise ValueError("answer 不能为空或纯空格")
+        for cid in self.used_chunk_ids:
+            if not cid.strip():
+                raise ValueError("used_chunk_ids 元素不能为空或纯空格")
+        return self
 
 
 class BaziAgentResult(BaseModel):
@@ -84,6 +100,7 @@ class BaziAgentResult(BaseModel):
     question: str
     chart: BaziChart
     answer: str
+    citations: tuple[Citation, ...]
 
 
 class BaziBirthDataPatch(BaseModel):

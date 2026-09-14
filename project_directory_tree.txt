@@ -1,0 +1,161 @@
+GuanChen v2/
+├── data
+│   └── knowledge
+│       ├── raw_verified
+│       │   ├── bazi
+│       │   │   ├── ditiansui_chanwei.md
+│       │   │   ├── ditiansui_original.md
+│       │   │   ├── sanming_tonghui.md
+│       │   │   └── yuanhai_ziping.md
+│       │   ├── liuyao
+│       │   │   └── zengshan_buyi.md
+│       │   └── yijing
+│       │       └── zhouyi.md
+│       └── source_original
+│           ├── bazi
+│           │   ├── ditiansui_chanwei_luckclub.pdf
+│           │   ├── ditiansui_original_luckclub.pdf
+│           │   ├── sanming_tonghui_luckclub.pdf
+│           │   └── yuanhai_ziping_luckclub.pdf
+│           ├── liuyao
+│           │   └── zengshan_buyi_luckclub.pdf
+│           └── yijing
+│               └── zhouyi_luckclub.pdf
+├── docs
+│   ├── adr
+│   │   ├── 000-template.md
+│   │   ├── 001-use-lunar-python-for-bazi-calculation.md
+│   │   ├── 002-use-postgresql-pgvector-for-vector-storage.md
+│   │   ├── 003-use-ichingpy-for-liuyao-calculation.md
+│   │   ├── 004-introduce-langgraph-only-when-required.md
+│   │   └── 005-use-mcp-as-external-interoperability-layer.md
+│   ├── agent_contracts.md
+│   ├── architecture.md
+│   ├── backlog_v2_1.md
+│   ├── bazi_calculation_contract.md
+│   ├── domain_models.md
+│   ├── knowledge_corpus_manifest.md
+│   ├── learning_knowledge_map.md
+│   ├── product_charter.md
+│   ├── request_lifecycle.md
+│   ├── roadmap.md
+│   ├── stage3_bazi_agent_acceptance.md
+│   └── user_flows.md
+├── scripts
+│   ├── bazi_cli.py
+│   ├── export_code.py
+│   ├── export_tree.py
+│   ├── smoke_bazi_agent.py
+│   ├── smoke_llm.py
+│   └── test_reranker_smoke.py
+├── src
+│   └── guanchen_v2
+│       ├── agents
+│       │   ├── bazi
+│       │   │   ├── exceptions.py
+│       │   │   ├── models.py
+│       │   │   ├── requirements.py
+│       │   │   ├── runtime.py
+│       │   │   └── session.py
+│       │   └── knowledge
+│       │       ├── agent.py
+│       │       └── models.py
+│       ├── bazi
+│       │   ├── adapter.py
+│       │   ├── exceptions.py
+│       │   └── service.py
+│       ├── config
+│       │   └── settings.py
+│       ├── core
+│       │   └── logging.py
+│       ├── knowledge
+│       │   ├── ingestion
+│       │   │   ├── chunker.py
+│       │   │   ├── errors.py
+│       │   │   ├── loader.py
+│       │   │   ├── models.py
+│       │   │   ├── normalizer.py
+│       │   │   ├── parser.py
+│       │   │   └── service.py
+│       │   ├── persistence
+│       │   │   ├── database.py
+│       │   │   └── models.py
+│       │   ├── retrieval
+│       │   │   ├── assembler.py
+│       │   │   ├── dense.py
+│       │   │   ├── rerank.py
+│       │   │   ├── rrf.py
+│       │   │   ├── service.py
+│       │   │   └── sparse.py
+│       │   ├── embeddings.py
+│       │   ├── errors.py
+│       │   ├── models.py
+│       │   └── rerank_adapter.py
+│       ├── llm
+│       │   ├── client.py
+│       │   ├── exceptions.py
+│       │   └── provider.py
+│       ├── models
+│       │   └── bazi.py
+│       ├── prompts
+│       │   ├── bazi_agent.py
+│       │   └── smoke.py
+│       ├── tools
+│       │   ├── bazi.py
+│       │   └── bazi_retrieval.py
+│       └── __init__.py
+├── tests
+│   ├── agents
+│   │   ├── bazi
+│   │   │   ├── test_requirements.py
+│   │   │   ├── test_runtime.py
+│   │   │   ├── test_session.py
+│   │   │   └── test_stage3_acceptance.py
+│   │   └── knowledge
+│   │       └── test_agent_orchestration.py
+│   ├── bazi
+│   │   ├── __init__.py
+│   │   ├── cases.py
+│   │   ├── test_adapter.py
+│   │   ├── test_bazi_fixtures.py
+│   │   ├── test_bazi_tool.py
+│   │   └── test_service.py
+│   ├── config
+│   │   └── test_settings.py
+│   ├── knowledge
+│   │   ├── ingestion
+│   │   │   ├── test_chunker.py
+│   │   │   ├── test_ingestion_service.py
+│   │   │   ├── test_loader.py
+│   │   │   ├── test_normalizer.py
+│   │   │   ├── test_parser.py
+│   │   │   └── test_stage4_corpus_smoke.py
+│   │   ├── persistence
+│   │   │   └── test_db_integration.py
+│   │   ├── retrieval
+│   │   │   ├── test_assembler.py
+│   │   │   ├── test_dense_integration.py
+│   │   │   ├── test_filters_integration.py
+│   │   │   ├── test_reranker.py
+│   │   │   ├── test_rrf.py
+│   │   │   └── test_sparse_integration.py
+│   │   ├── test_embeddings.py
+│   │   └── test_models.py
+│   ├── llm
+│   │   ├── test_client.py
+│   │   └── test_provider.py
+│   ├── models
+│   │   └── test_bazi_models.py
+│   └── __init__.py
+├── .env
+├── .env.example
+├── .gitignore
+├── .python-version
+├── project_directory_tree.txt
+├── project_source_code.txt
+├── pyproject.toml
+├── README.md
+├── STAGE0_ARTIFACTS_INDEX.md
+├── uv.lock
+├── 项目规划.docx
+└── 项目规划.txt

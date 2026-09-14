@@ -24,7 +24,7 @@ class BaziTaskSession:
         self._runtime = runtime
         self._result: BaziAgentResult | None = None
 
-    def evaluate(self) -> BaziTaskResult:
+    async def evaluate(self) -> BaziTaskResult:
         """评估当前任务状态，若资料齐备则触发并返回最终结果。"""
         if self._result is not None:
             return self._result
@@ -32,12 +32,12 @@ class BaziTaskSession:
         req_result = check_bazi_requirements(self._current_input)
 
         if isinstance(req_result, ReadyForBazi):
-            self._result = self._runtime.run(req_result)
+            self._result = await self._runtime.run(req_result)
             return self._result
 
         return req_result
 
-    def supplement(self, patch: BaziBirthDataPatch) -> BaziTaskResult:
+    async def supplement(self, patch: BaziBirthDataPatch) -> BaziTaskResult:
         """
         接收出生资料补丁。
 
@@ -58,4 +58,4 @@ class BaziTaskSession:
         new_input = BaziAgentInput.model_validate(merged)
         self._current_input = new_input
 
-        return self.evaluate()
+        return await self.evaluate()
