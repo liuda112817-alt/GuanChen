@@ -1,38 +1,88 @@
 {
-  "query_count": 30,
+  "query_count": 45,
   "dense": {
-    "recall_at_5": 0.8666666666666667,
-    "mrr_at_10": 0.6305555555555556,
-    "query_count": 30
+    "recall_at_5": 0.8888888888888888,
+    "mrr_at_10": 0.6403703703703704,
+    "query_count": 45
   },
   "sparse": {
-    "recall_at_5": 0.8,
-    "mrr_at_10": 0.6372222222222222,
-    "query_count": 30
+    "recall_at_5": 0.8222222222222222,
+    "mrr_at_10": 0.715925925925926,
+    "query_count": 45
   },
   "rrf": {
-    "recall_at_5": 0.9,
-    "mrr_at_10": 0.7666666666666667,
-    "query_count": 30
+    "recall_at_5": 0.9111111111111111,
+    "mrr_at_10": 0.7611111111111111,
+    "query_count": 45
   },
   "dense_exact_chunk_diagnostic": {
-    "recall_at_5": 0.8,
-    "mrr_at_10": 0.5855555555555555,
-    "query_count": 30
+    "recall_at_5": 0.8444444444444444,
+    "mrr_at_10": 0.6103703703703703,
+    "query_count": 45
   },
   "sparse_exact_chunk_diagnostic": {
-    "recall_at_5": 0.7333333333333333,
-    "mrr_at_10": 0.5811111111111111,
-    "query_count": 30
+    "recall_at_5": 0.7777777777777778,
+    "mrr_at_10": 0.6785185185185185,
+    "query_count": 45
   },
   "rrf_exact_chunk_diagnostic": {
-    "recall_at_5": 0.8,
-    "mrr_at_10": 0.7037037037037037,
-    "query_count": 30
+    "recall_at_5": 0.8444444444444444,
+    "mrr_at_10": 0.7191358024691359,
+    "query_count": 45
   },
   "reranked": null,
   "reranked_exact_chunk_diagnostic": null,
   "reranker_relative_mrr_gain": null,
   "reranker_added_p50_ms": null,
-  "reranker_added_p95_ms": null
+  "reranker_added_p95_ms": null,
+  "domain_metrics": {
+    "bazi": {
+      "query_count": 30,
+      "dense": {
+        "recall_at_5": 0.8666666666666667,
+        "mrr_at_10": 0.6305555555555556
+      },
+      "sparse": {
+        "recall_at_5": 0.8,
+        "mrr_at_10": 0.6372222222222222
+      },
+      "rrf": {
+        "recall_at_5": 0.9,
+        "mrr_at_10": 0.7666666666666667
+      },
+      "reranked": null
+    },
+    "dream": {
+      "query_count": 10,
+      "dense": {
+        "recall_at_5": 0.9,
+        "mrr_at_10": 0.5700000000000001
+      },
+      "sparse": {
+        "recall_at_5": 0.8,
+        "mrr_at_10": 0.8099999999999999
+      },
+      "rrf": {
+        "recall_at_5": 0.9,
+        "mrr_at_10": 0.625
+      },
+      "reranked": null
+    },
+    "yijing": {
+      "query_count": 5,
+      "dense": {
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.8400000000000001
+      },
+      "sparse": {
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0
+      },
+      "rrf": {
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0
+      },
+      "reranked": null
+    }
+  }
 }

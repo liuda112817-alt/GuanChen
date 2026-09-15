@@ -65,9 +65,7 @@ class BgeRerankerAdapter:
             try:
                 score = float(s)
             except (TypeError, ValueError) as exc:
-                raise KnowledgeRerankerError(
-                    f"重排模型返回了非标量结构或无法转为浮点数：{s}"
-                ) from exc
+                raise KnowledgeRerankerError(f"重排模型返回了非标量结构或无法转为浮点数：{s}") from exc
 
             if not math.isfinite(score):
                 raise KnowledgeRerankerError(f"重排模型返回了非法的无穷数值打分 (NaN/Inf)：{score}")

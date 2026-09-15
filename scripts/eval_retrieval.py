@@ -34,6 +34,7 @@ from guanchen_v2.knowledge.models import (
 )
 from guanchen_v2.knowledge.persistence.database import (
     async_session,
+    dispose_db,
     init_db,
 )
 from guanchen_v2.knowledge.persistence.models import (
@@ -53,15 +54,24 @@ from guanchen_v2.knowledge.retrieval.sparse import (
 # Frozen Stage 4 Eval Contract
 # ============================================================
 
-MIN_EVAL_CASES = 30
+MIN_EVAL_CASES = 45
+
+REQUIRED_DOMAIN_CASE_COUNTS = {
+    KnowledgeDomain.BAZI: 30,
+    KnowledgeDomain.DREAM: 10,
+    KnowledgeDomain.YIJING: 5,
+}
+
+OVERALL_RRF_RECALL_GATE = 0.85
+DOMAIN_RRF_RECALL_GATE = 0.80
 
 RECALL_K = 5
 MRR_K = 10
 CANDIDATE_LIMIT = 20
 
-EVAL_CASES_FILE = Path("evals/retrieval/stage4_retrieval_eval.json")
+EVAL_CASES_FILE = Path("evals/retrieval/stage4_retrieval_golden.json")
 
-FAILURE_REPORT_FILE = Path("evals/retrieval/failure_report.jsonl")
+FAILURE_REPORT_FILE = Path("evals/retrieval/stage4_retrieval_failures.jsonl")
 
 FINAL_REPORT_FILE = Path("evals/retrieval/stage4_retrieval_report.json")
 
@@ -256,55 +266,53 @@ def _row_matches_filter(
 
 async def check_preflight(
     cases: list[RetrievalEvalCase],
-) -> dict[
-    str,
-    frozenset[SourceSectionKey],
+) -> tuple[
+    dict[str, frozenset[SourceSectionKey]],
+    dict[str, KnowledgeDomain],
 ]:
     """
     正式 Benchmark 前检查：
 
-    1. 至少 30 条人工 case；
+    1. 至少达到当前多领域 Golden Set 的最小题量；
     2. 所有 anchor GT chunk 必须真实存在；
     3. GT 必须满足该 case 的 metadata filter；
-    4. 从 anchor chunk 派生正式 expected source_title + section。
+    4. 每个 case 的所有 GT anchor 必须属于同一 KnowledgeDomain；
+    5. Bazi / Dream / Yijing 必须达到最小覆盖题量；
+    6. 从 anchor chunk 派生正式 expected source_title + section。
 
     返回：
-        case_id -> expected source/section relevance set
+        - case_id -> expected source/section relevance set
+        - case_id -> ground-truth domain
     """
     if len(cases) < MIN_EVAL_CASES:
         raise ValueError(
-            "[BLOCKER] Retrieval Eval 至少需要 "
-            f"{MIN_EVAL_CASES} 条有效人工考题，"
-            f"当前只有 {len(cases)} 条。"
+            f"[BLOCKER] Retrieval Eval 至少需要 {MIN_EVAL_CASES} 条有效人工考题，当前只有 {len(cases)} 条。"
         )
 
     all_gt_ids = {chunk_id for case in cases for chunk_id in case.relevant_chunk_ids}
 
     async with async_session() as session:
-        statement = select(KnowledgeChunkRow).where(
-            KnowledgeChunkRow.chunk_id.in_(sorted(all_gt_ids))
-        )
-
+        statement = select(KnowledgeChunkRow).where(KnowledgeChunkRow.chunk_id.in_(sorted(all_gt_ids)))
         rows = (await session.execute(statement)).scalars().all()
 
     row_map = {row.chunk_id: row for row in rows}
-
     missing_ids = all_gt_ids - set(row_map)
 
     if missing_ids:
         raise ValueError(
-            "Preflight 失败：以下 Ground Truth "
-            "anchor chunk 不存在于当前数据库："
-            f"{sorted(missing_ids)}"
+            f"Preflight 失败：以下 Ground Truth anchor chunk 不存在于当前数据库：{sorted(missing_ids)}"
         )
 
     expected_source_sections: dict[
         str,
         frozenset[SourceSectionKey],
     ] = {}
+    case_domains: dict[str, KnowledgeDomain] = {}
+    coverage_counts = {domain: 0 for domain in REQUIRED_DOMAIN_CASE_COUNTS}
 
     for case in cases:
         case_expected: set[SourceSectionKey] = set()
+        gt_domains: set[KnowledgeDomain] = set()
 
         for chunk_id in case.relevant_chunk_ids:
             row = row_map[chunk_id]
@@ -314,26 +322,60 @@ async def check_preflight(
                 case.filters,
             ):
                 raise ValueError(
-                    "Preflight 失败："
-                    f"case [{case.case_id}] 的 GT "
-                    f"[{chunk_id}] 不满足自身 "
-                    "RetrievalFilter。"
+                    f"Preflight 失败：case [{case.case_id}] 的 GT [{chunk_id}] 不满足自身 RetrievalFilter。"
                 )
 
+            try:
+                gt_domain = KnowledgeDomain(_enum_or_raw_value(row.domain))
+            except ValueError as exc:
+                raise ValueError(
+                    "Preflight 失败："
+                    f"case [{case.case_id}] 的 GT [{chunk_id}] "
+                    f"包含未知 domain [{row.domain}]。"
+                ) from exc
+
+            gt_domains.add(gt_domain)
             case_expected.add(_row_source_section_key(row))
 
         if not case_expected:
             raise ValueError(f"case [{case.case_id}] 无法派生 expected source/section")
 
+        if len(gt_domains) != 1:
+            raise ValueError(
+                "Preflight 失败："
+                f"case [{case.case_id}] 的 Ground Truth 跨越多个 domain："
+                f"{sorted(domain.value for domain in gt_domains)}"
+            )
+
+        case_domain = next(iter(gt_domains))
         expected_source_sections[case.case_id] = frozenset(case_expected)
+        case_domains[case.case_id] = case_domain
+
+        if case_domain in coverage_counts:
+            coverage_counts[case_domain] += 1
+
+    coverage_errors: list[str] = []
+
+    for domain, minimum in REQUIRED_DOMAIN_CASE_COUNTS.items():
+        actual = coverage_counts[domain]
+        if actual < minimum:
+            coverage_errors.append(f"{domain.value}: {actual}/{minimum}")
+
+    if coverage_errors:
+        raise ValueError("[BLOCKER] Retrieval Eval 多领域覆盖不足：" + ", ".join(coverage_errors))
+
+    coverage_text = ", ".join(
+        f"{domain.value}={coverage_counts[domain]}" for domain in REQUIRED_DOMAIN_CASE_COUNTS
+    )
 
     print(
         "✓ Preflight PASS："
-        "30+ cases、GT lineage、metadata filters、"
-        "expected source/section 全部有效。"
+        f"{len(cases)} cases、GT lineage、metadata filters、"
+        "domain isolation、expected source/section 全部有效。"
     )
+    print(f"✓ Multi-domain coverage：{coverage_text}")
 
-    return expected_source_sections
+    return expected_source_sections, case_domains
 
 
 # ============================================================
@@ -371,9 +413,7 @@ def _serialize_filter(
         return None
 
     return {
-        "domains": (
-            sorted(domain.value for domain in filters.domains) if filters.domains else None
-        ),
+        "domains": (sorted(domain.value for domain in filters.domains) if filters.domains else None),
         "source_types": (
             sorted(source_type.value for source_type in filters.source_types)
             if filters.source_types
@@ -442,7 +482,7 @@ async def run_evaluation(
 
     await init_db()
 
-    expected_source_sections = await check_preflight(cases)
+    expected_source_sections, case_domains = await check_preflight(cases)
 
     print("正在加载 Dense / Sparse Retrieval...")
 
@@ -534,6 +574,12 @@ async def run_evaluation(
     rerank_chunk_mrrs: list[float] = []
 
     rerank_latencies: list[float] = []
+
+    # ========================================================
+    # Per-domain official metrics
+    # ========================================================
+
+    domain_observations: dict[str, dict[str, list[float]]] = {}
 
     # ========================================================
     # Failure report
@@ -768,6 +814,36 @@ async def run_evaluation(
             )
 
         # ====================================================
+        # Per-domain official observations
+        # ====================================================
+
+        domain_name = case_domains[case.case_id].value
+        bucket = domain_observations.setdefault(
+            domain_name,
+            {
+                "dense_recall": [],
+                "dense_mrr": [],
+                "sparse_recall": [],
+                "sparse_mrr": [],
+                "rrf_recall": [],
+                "rrf_mrr": [],
+                "rerank_recall": [],
+                "rerank_mrr": [],
+            },
+        )
+
+        bucket["dense_recall"].append(dense_recalls[-1])
+        bucket["dense_mrr"].append(dense_mrrs[-1])
+        bucket["sparse_recall"].append(sparse_recalls[-1])
+        bucket["sparse_mrr"].append(sparse_mrrs[-1])
+        bucket["rrf_recall"].append(rrf_recalls[-1])
+        bucket["rrf_mrr"].append(rrf_mrrs[-1])
+
+        if not skip_reranker:
+            bucket["rerank_recall"].append(rerank_recalls[-1])
+            bucket["rerank_mrr"].append(rerank_mrrs[-1])
+
+        # ====================================================
         # Failure Analysis
         #
         # 只按正式 source/section Gate 判断 failure。
@@ -833,9 +909,7 @@ async def run_evaluation(
                 "sparse_top_10": [_hit_view(hit) for hit in sparse_hits[:10]],
                 "rrf_top_10": [_hit_view(hit) for hit in rrf_hits[:10]],
                 "reranked_top_10": (
-                    [_hit_view(hit) for hit in reranked_hits[:10]]
-                    if reranked_hits is not None
-                    else None
+                    [_hit_view(hit) for hit in reranked_hits[:10]] if reranked_hits is not None else None
                 ),
             }
 
@@ -894,6 +968,39 @@ async def run_evaluation(
         mrr_at_10=_mean(rrf_chunk_mrrs),
         query_count=len(cases),
     )
+
+    # ========================================================
+    # Aggregate per-domain official metrics
+    # ========================================================
+
+    domain_metrics: dict[str, dict[str, Any]] = {}
+
+    for domain_name, bucket in sorted(domain_observations.items()):
+        domain_report: dict[str, Any] = {
+            "query_count": len(bucket["rrf_recall"]),
+            "dense": {
+                "recall_at_5": _mean(bucket["dense_recall"]),
+                "mrr_at_10": _mean(bucket["dense_mrr"]),
+            },
+            "sparse": {
+                "recall_at_5": _mean(bucket["sparse_recall"]),
+                "mrr_at_10": _mean(bucket["sparse_mrr"]),
+            },
+            "rrf": {
+                "recall_at_5": _mean(bucket["rrf_recall"]),
+                "mrr_at_10": _mean(bucket["rrf_mrr"]),
+            },
+        }
+
+        if bucket["rerank_recall"]:
+            domain_report["reranked"] = {
+                "recall_at_5": _mean(bucket["rerank_recall"]),
+                "mrr_at_10": _mean(bucket["rerank_mrr"]),
+            }
+        else:
+            domain_report["reranked"] = None
+
+        domain_metrics[domain_name] = domain_report
 
     # ========================================================
     # Report construction
@@ -961,6 +1068,7 @@ async def run_evaluation(
     # ========================================================
 
     report_payload = asdict(report)
+    report_payload["domain_metrics"] = domain_metrics
 
     FINAL_REPORT_FILE.parent.mkdir(
         parents=True,
@@ -996,11 +1104,7 @@ async def run_evaluation(
 
     imperfect_count = sum(1 for recall in rrf_recalls if recall < 1.0)
 
-    print(
-        "\nOfficial source/section failures: "
-        f"{imperfect_count}/{len(cases)} "
-        "cases have RRF Recall@5 < 1.0"
-    )
+    print(f"\nOfficial source/section failures: {imperfect_count}/{len(cases)} cases have RRF Recall@5 < 1.0")
 
     print(f"Failure report: {FAILURE_REPORT_FILE}")
 
@@ -1015,7 +1119,10 @@ async def run_evaluation(
     print("Verdict 1: Stage 4 Core Retrieval Quality Gate")
     print("=" * 60)
 
-    recall_pass = report.rrf.recall_at_5 >= 0.85
+    recall_pass = report.rrf.recall_at_5 >= OVERALL_RRF_RECALL_GATE
+    domain_recall_pass = all(
+        metrics["rrf"]["recall_at_5"] >= DOMAIN_RRF_RECALL_GATE for metrics in domain_metrics.values()
+    )
 
     print("Official relevance unit: source_title + section")
 
@@ -1025,10 +1132,23 @@ async def run_evaluation(
 
     print(f"RRF    Recall@5={report.rrf.recall_at_5:.4f}  MRR@10={report.rrf.mrr_at_10:.4f}")
 
-    if recall_pass:
-        print("\n[PASS] Core Retrieval Gate：RRF source/section Recall@5 >= 0.85")
+    print("\nPer-domain official metrics:")
+    for domain_name, metrics in sorted(domain_metrics.items()):
+        print(
+            f"  {domain_name:<20} "
+            f"n={metrics['query_count']:<3} "
+            f"RRF Recall@5={metrics['rrf']['recall_at_5']:.4f}  "
+            f"MRR@10={metrics['rrf']['mrr_at_10']:.4f}"
+        )
+
+    if recall_pass and domain_recall_pass:
+        print(
+            "\n[PASS] Core Retrieval Gate："
+            f"overall RRF Recall@5 >= {OVERALL_RRF_RECALL_GATE:.2f}，"
+            f"且每个要求领域 RRF Recall@5 >= {DOMAIN_RRF_RECALL_GATE:.2f}"
+        )
     else:
-        print("\n[FAIL] Core Retrieval Gate：RRF source/section Recall@5 < 0.85")
+        print("\n[FAIL] Core Retrieval Gate：overall 或至少一个领域未达到 Recall Gate。")
 
     # ========================================================
     # Diagnostic exact chunk results
@@ -1106,11 +1226,16 @@ async def run_evaluation(
             print("Production policy: reranker_enabled=False")
 
 
-if __name__ == "__main__":
+async def main() -> None:
     args = parse_args()
 
-    asyncio.run(
-        run_evaluation(
+    try:
+        await run_evaluation(
             skip_reranker=args.skip_reranker,
         )
-    )
+    finally:
+        await dispose_db()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

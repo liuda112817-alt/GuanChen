@@ -147,3 +147,31 @@ def test_ditiansui_anchor_without_commentary_fails():
 
     with pytest.raises(KnowledgeChunkingError, match="缺失关联释义"):
         chunker.chunk_document(doc)
+
+
+def test_repeated_split_content_is_stably_deduplicated():
+    text = "全新的颠覆性文本二号，旧版全部作废！" * 15
+
+    doc = _create_doc(
+        "《书》",
+        text,
+    )
+
+    chunker = KnowledgeDocumentChunker(
+        max_chars=50,
+        chunk_overlap=5,
+    )
+
+    chunks_first = chunker.chunk_document(doc)
+
+    chunks_second = chunker.chunk_document(doc)
+
+    first_ids = [chunk.chunk_id for chunk in chunks_first]
+
+    second_ids = [chunk.chunk_id for chunk in chunks_second]
+
+    assert len(chunks_first) > 1
+
+    assert len(first_ids) == len(set(first_ids))
+
+    assert first_ids == second_ids

@@ -4,8 +4,17 @@ import pytest
 
 from guanchen_v2.knowledge.embeddings import BgeEmbeddingAdapter
 from guanchen_v2.knowledge.models import KnowledgeDomain, RetrievalFilter, SourceType
-from guanchen_v2.knowledge.persistence.database import async_session, engine, init_db
-from guanchen_v2.knowledge.persistence.models import KnowledgeChunkRow, KnowledgeDocumentRow
+from guanchen_v2.knowledge.persistence.database import (
+    async_session,
+    dispose_db,
+    get_engine,
+    init_db,
+)
+from guanchen_v2.knowledge.persistence.models import (
+    Base,
+    KnowledgeChunkRow,
+    KnowledgeDocumentRow,
+)
 from guanchen_v2.knowledge.retrieval.dense import DenseRetriever
 from guanchen_v2.knowledge.retrieval.sparse import SparseRetriever
 
@@ -15,16 +24,18 @@ pytestmark = pytest.mark.integration
 @pytest.fixture(autouse=True)
 async def setup_database():
     await init_db()
-    yield
-    from guanchen_v2.knowledge.persistence.models import Base
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    try:
+        yield
+    finally:
+        try:
+            async with get_engine().begin() as conn:
+                await conn.run_sync(Base.metadata.drop_all)
+        finally:
+            await dispose_db()
 
 
-async def _seed_data(
-    session, chunk_id: str, domain: str, source_type: str, text: str, score_tier: float
-):
+async def _seed_data(session, chunk_id: str, domain: str, source_type: str, text: str, score_tier: float):
     doc_id = f"doc_{chunk_id}"
     doc = KnowledgeDocumentRow(
         document_id=doc_id,
@@ -60,8 +71,11 @@ async def _seed_data(
         section="S",
         text=text,
         embedding=vec,
+        embedding_model=BgeEmbeddingAdapter.MODEL_NAME,
     )
     session.add(doc)
+    await session.flush()
+
     session.add(chunk)
 
 
@@ -70,15 +84,9 @@ async def test_filter_must_happen_before_limit():
     """【绝对核心】证明过滤器没有把本该排上号的合法文档挤出局。"""
     async with async_session() as session:
         # 六爻的文档靠得极近（极其相关）
-        await _seed_data(
-            session, "L1", "liuyao", "project_note", "相关词汇极高 相关词汇", score_tier=1.0
-        )
-        await _seed_data(
-            session, "L2", "liuyao", "project_note", "相关词汇极高 相关词汇", score_tier=1.0
-        )
-        await _seed_data(
-            session, "L3", "liuyao", "project_note", "相关词汇极高 相关词汇", score_tier=1.0
-        )
+        await _seed_data(session, "L1", "liuyao", "project_note", "相关词汇极高 相关词汇", score_tier=1.0)
+        await _seed_data(session, "L2", "liuyao", "project_note", "相关词汇极高 相关词汇", score_tier=1.0)
+        await _seed_data(session, "L3", "liuyao", "project_note", "相关词汇极高 相关词汇", score_tier=1.0)
         # 八字的文档相较之下距离较远（或命中词较少）
         await _seed_data(session, "B1", "bazi", "project_note", "相关词汇", score_tier=0.5)
         await _seed_data(session, "B2", "bazi", "project_note", "相关词汇", score_tier=0.5)
@@ -89,6 +97,7 @@ async def test_filter_must_happen_before_limit():
 
     # 1. 验证 Dense
     adapter = MagicMock(spec=BgeEmbeddingAdapter)
+    adapter.model_name = BgeEmbeddingAdapter.MODEL_NAME
     q_vec = [0.0] * 512
     q_vec[0] = 1.0
     adapter.embed_query.return_value = q_vec

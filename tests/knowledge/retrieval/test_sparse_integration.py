@@ -4,8 +4,17 @@ import pytest
 from sqlalchemy import delete
 
 from guanchen_v2.knowledge.errors import KnowledgeRetrievalError
-from guanchen_v2.knowledge.persistence.database import async_session, engine, init_db
-from guanchen_v2.knowledge.persistence.models import KnowledgeChunkRow, KnowledgeDocumentRow
+from guanchen_v2.knowledge.persistence.database import (
+    async_session,
+    dispose_db,
+    get_engine,
+    init_db,
+)
+from guanchen_v2.knowledge.persistence.models import (
+    Base,
+    KnowledgeChunkRow,
+    KnowledgeDocumentRow,
+)
 from guanchen_v2.knowledge.retrieval.sparse import SparseRetriever
 
 # 只有涉及真实 DB 重建及第三方库索引运算的才标记为 integration
@@ -14,13 +23,16 @@ pytestmark = pytest.mark.integration
 
 @pytest.fixture(autouse=True)
 async def setup_database():
-    """每次测试前重建并清空 Schema。"""
     await init_db()
-    yield
-    from guanchen_v2.knowledge.persistence.models import Base
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    try:
+        yield
+    finally:
+        try:
+            async with get_engine().begin() as conn:
+                await conn.run_sync(Base.metadata.drop_all)
+        finally:
+            await dispose_db()
 
 
 async def _seed_data(session, chunk_id: str, title: str, section: str, text: str):
@@ -42,8 +54,11 @@ async def _seed_data(session, chunk_id: str, title: str, section: str, text: str
         section=section,
         text=text,
         embedding=[0.1] * 512,
+        embedding_model="BAAI/bge-small-zh-v1.5",
     )
     session.add(doc)
+    await session.flush()
+
     session.add(chunk)
 
 
@@ -99,9 +114,7 @@ async def test_sparse_rebuild_synchronizes_with_db_snapshot():
 
     # 物理抹除旧文档，并插入新文档
     async with async_session() as session:
-        await session.execute(
-            delete(KnowledgeChunkRow).where(KnowledgeChunkRow.chunk_id == "old_chunk")
-        )
+        await session.execute(delete(KnowledgeChunkRow).where(KnowledgeChunkRow.chunk_id == "old_chunk"))
         await _seed_data(session, "new_chunk", "新编", "下卷", "包含现代科学的新见解。")
         await session.commit()
 

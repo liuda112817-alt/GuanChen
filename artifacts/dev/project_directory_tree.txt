@@ -7,6 +7,8 @@ GuanChen v2/
 │       │   │   ├── ditiansui_original.md
 │       │   │   ├── sanming_tonghui.md
 │       │   │   └── yuanhai_ziping.md
+│       │   ├── dream
+│       │   │   └── zhougongjiemeng.md
 │       │   ├── liuyao
 │       │   │   └── zengshan_buyi.md
 │       │   └── yijing
@@ -17,6 +19,8 @@ GuanChen v2/
 │           │   ├── ditiansui_original_luckclub.pdf
 │           │   ├── sanming_tonghui_luckclub.pdf
 │           │   └── yuanhai_ziping_luckclub.pdf
+│           ├── dream
+│           │   └── zhougongjiemeng.txt
 │           ├── liuyao
 │           │   └── zengshan_buyi_luckclub.pdf
 │           └── yijing
@@ -41,12 +45,22 @@ GuanChen v2/
 │   ├── roadmap.md
 │   ├── stage3_bazi_agent_acceptance.md
 │   └── user_flows.md
+├── evals
+│   └── retrieval
+│       ├── failure_report.jsonl
+│       ├── stage4_retrieval_eval.json
+│       └── stage4_retrieval_report.json
 ├── scripts
 │   ├── bazi_cli.py
+│   ├── eval_retrieval.py
 │   ├── export_code.py
 │   ├── export_tree.py
+│   ├── ingest_corpus.py
+│   ├── peek_corpus_chunks.py
 │   ├── smoke_bazi_agent.py
 │   ├── smoke_llm.py
+│   ├── smoke_test_extractor.py
+│   ├── stage5_acceptance.py
 │   └── test_reranker_smoke.py
 ├── src
 │   └── guanchen_v2
@@ -68,6 +82,13 @@ GuanChen v2/
 │       │   └── settings.py
 │       ├── core
 │       │   └── logging.py
+│       ├── dream
+│       │   ├── context.py
+│       │   ├── dream_merge.py
+│       │   ├── exceptions.py
+│       │   ├── extractor.py
+│       │   ├── retrieval.py
+│       │   └── runtime.py
 │       ├── knowledge
 │       │   ├── ingestion
 │       │   │   ├── chunker.py
@@ -89,6 +110,8 @@ GuanChen v2/
 │       │   │   └── sparse.py
 │       │   ├── embeddings.py
 │       │   ├── errors.py
+│       │   ├── eval_metrics.py
+│       │   ├── eval_models.py
 │       │   ├── models.py
 │       │   └── rerank_adapter.py
 │       ├── llm
@@ -96,9 +119,11 @@ GuanChen v2/
 │       │   ├── exceptions.py
 │       │   └── provider.py
 │       ├── models
-│       │   └── bazi.py
+│       │   ├── bazi.py
+│       │   └── dream.py
 │       ├── prompts
 │       │   ├── bazi_agent.py
+│       │   ├── dream_agent.py
 │       │   └── smoke.py
 │       ├── tools
 │       │   ├── bazi.py
@@ -118,10 +143,17 @@ GuanChen v2/
 │   │   ├── cases.py
 │   │   ├── test_adapter.py
 │   │   ├── test_bazi_fixtures.py
+│   │   ├── test_bazi_retrieval.py
 │   │   ├── test_bazi_tool.py
 │   │   └── test_service.py
 │   ├── config
 │   │   └── test_settings.py
+│   ├── dream
+│   │   ├── test_context.py
+│   │   ├── test_dream_merge.py
+│   │   ├── test_extractor.py
+│   │   ├── test_retrieval.py
+│   │   └── test_runtime.py
 │   ├── knowledge
 │   │   ├── ingestion
 │   │   │   ├── test_chunker.py
@@ -140,6 +172,7 @@ GuanChen v2/
 │   │   │   ├── test_rrf.py
 │   │   │   └── test_sparse_integration.py
 │   │   ├── test_embeddings.py
+│   │   ├── test_eval_metrics.py
 │   │   └── test_models.py
 │   ├── llm
 │   │   ├── test_client.py
@@ -151,6 +184,8 @@ GuanChen v2/
 ├── .env.example
 ├── .gitignore
 ├── .python-version
+├── corpus_chunk_dict.txt
+├── docker-compose.yml
 ├── project_directory_tree.txt
 ├── project_source_code.txt
 ├── pyproject.toml

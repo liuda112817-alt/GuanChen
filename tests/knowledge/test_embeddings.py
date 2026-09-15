@@ -155,3 +155,14 @@ def test_real_bge_model_smoke():
     assert len(query_vector) == 512
     q_norm = math.sqrt(sum(x * x for x in query_vector))
     assert math.isclose(q_norm, 1.0, rel_tol=1e-5)
+
+
+@patch("guanchen_v2.knowledge.embeddings.SentenceTransformer")
+def test_embedding_model_identity_contract(
+    mock_st_class,
+):
+    adapter = BgeEmbeddingAdapter()
+
+    assert adapter.model_name == "BAAI/bge-small-zh-v1.5"
+
+    assert adapter.MODEL_NAME == "BAAI/bge-small-zh-v1.5"

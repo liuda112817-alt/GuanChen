@@ -76,3 +76,8 @@ def test_chunk_id_whitespace_semantics():
     # 但完全粘连的词汇是另一种语义，ID 必须不同！
     id5 = generate_deterministic_chunk_id("doc1", "sec1", "甲乙")
     assert id1 != id5
+
+
+def test_knowledge_domain_includes_dream():
+    assert KnowledgeDomain.DREAM.value == "dream"
+    assert KnowledgeDomain("dream") is KnowledgeDomain.DREAM

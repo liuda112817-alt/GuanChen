@@ -54,9 +54,7 @@ async def main():
             success_count += 1
             print(f"[{i}/{len(total_docs)}] 成功入库: {doc.source_title} - {doc.section}")
         except Exception as e:
-            print(
-                f"[{i}/{len(total_docs)}] 入库失败: {doc.source_title} - {doc.section} | 错误: {e}"
-            )
+            print(f"[{i}/{len(total_docs)}] 入库失败: {doc.source_title} - {doc.section} | 错误: {e}")
 
     elapsed = time.perf_counter() - start_time
     print("=" * 60)

@@ -28,9 +28,7 @@ def peek_chunks():
 
     with open(output_file, "w", encoding="utf-8") as f:
         f.write("=== GuanChen 语料 Chunk ID 字典 ===\n")
-        f.write(
-            "使用方法：在本文档中 Ctrl+F 搜索你想作为正确答案的句子，即可找到上方的 chunk_id。\n\n"
-        )
+        f.write("使用方法：在本文档中 Ctrl+F 搜索你想作为正确答案的句子，即可找到上方的 chunk_id。\n\n")
 
         for raw_source in sources:
             norm_source = normalizer.normalize(raw_source)

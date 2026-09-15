@@ -39,9 +39,7 @@ class KnowledgeSourceLoader:
             if not has_seen_content:
                 has_seen_content = True
                 if not stripped.startswith("# "):
-                    raise KnowledgeSourceLoadError(
-                        f"文件 {source_path} 的首个有效内容必须是一级标题 (H1)。"
-                    )
+                    raise KnowledgeSourceLoadError(f"文件 {source_path} 的首个有效内容必须是一级标题 (H1)。")
                 h1_title = stripped[2:].strip()
             else:
                 if stripped.startswith("# "):
@@ -97,8 +95,7 @@ class KnowledgeSourceLoader:
 
                 if child.name not in valid_domains:
                     raise KnowledgeSourceLoadError(
-                        f"发现未知领域目录 '{child.name}'，\n"
-                        "如果这是拼写错误请修正，否则请移除该非法目录。"
+                        f"发现未知领域目录 '{child.name}'，\n如果这是拼写错误请修正，否则请移除该非法目录。"
                     )
 
                 # 获取该领域目录下的一层 MD 文件

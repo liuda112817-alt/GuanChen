@@ -1,30 +1,51 @@
-import numpy as np
 import pytest
 from sqlalchemy import select
-from sqlalchemy.exc import DBAPIError, IntegrityError
+from sqlalchemy.exc import (
+    DBAPIError,
+    IntegrityError,
+)
 
-from guanchen_v2.knowledge.persistence.database import async_session, engine, init_db
-from guanchen_v2.knowledge.persistence.models import KnowledgeChunkRow, KnowledgeDocumentRow
+from guanchen_v2.knowledge.persistence.database import (
+    async_session,
+    dispose_db,
+    get_engine,
+    init_db,
+)
+from guanchen_v2.knowledge.persistence.models import (
+    Base,
+    KnowledgeChunkRow,
+    KnowledgeDocumentRow,
+)
 
-# 注意：运行此测试需要本地真实的 PostgreSQL 服务（支持 pgvector）且配置了正确的 database_url
-# 隔离标记，防止普通单元测试阻断
 pytestmark = pytest.mark.integration
+
+
+EMBEDDING_MODEL = "BAAI/bge-small-zh-v1.5"
 
 
 @pytest.fixture(autouse=True)
 async def setup_database():
-    """每个测试前后重建 Schema 以保证干净的事务环境"""
-    await init_db()
-    yield
-    from guanchen_v2.knowledge.persistence.models import Base
+    """
+    每个 integration test 使用独立 DB runtime。
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    pytest-asyncio 默认给每个 test function 创建独立 event loop，
+    因此必须在当前 loop 关闭前 dispose AsyncEngine，
+    避免 asyncpg pool connection 被带入下一个 event loop。
+    """
+    await init_db()
+
+    try:
+        yield
+    finally:
+        try:
+            async with get_engine().begin() as conn:
+                await conn.run_sync(Base.metadata.drop_all)
+        finally:
+            await dispose_db()
 
 
 @pytest.mark.asyncio
 async def test_document_round_trip():
-    """验证 Document 的元数据无损存取"""
     doc_row = KnowledgeDocumentRow(
         document_id="doc_test_1",
         domain="bazi",
@@ -42,35 +63,41 @@ async def test_document_round_trip():
         result = await session.execute(
             select(KnowledgeDocumentRow).where(KnowledgeDocumentRow.document_id == "doc_test_1")
         )
+
         fetched = result.scalar_one_or_none()
 
-        assert fetched is not None
-        assert fetched.source_title == "《渊海子平》"
-        assert fetched.text == "天干地支..."
+    assert fetched is not None
+    assert fetched.source_title == "《渊海子平》"
+    assert fetched.text == "天干地支..."
 
 
 @pytest.mark.asyncio
 async def test_chunk_embedding_round_trip_and_fk_lineage():
-    """验证 Chunk 向量存取及外键血缘 (FK) 不可断裂"""
+    """
+    验证：
+    - Chunk FK lineage
+    - vector(512)
+    - embedding_model persistence
+    """
 
-    # 1. 制造孤立的 Chunk，期望外键拦截（因为没有插入对应的 Document）
     isolated_chunk = KnowledgeChunkRow(
         chunk_id="chunk_test_1",
-        document_id="doc_test_1",  # 数据库中还不存在
+        document_id="doc_test_1",
         domain="bazi",
         source_title="《渊海子平》",
         source_type="public_domain_classic",
         section="卷一",
         text="甲乙丙丁",
         embedding=[0.1] * 512,
+        embedding_model=EMBEDDING_MODEL,
     )
 
     async with async_session() as session:
         session.add(isolated_chunk)
+
         with pytest.raises(IntegrityError):
             await session.commit()
 
-    # 2. 正常流程：先有 Document，再有 Chunk
     doc_row = KnowledgeDocumentRow(
         document_id="doc_test_1",
         domain="bazi",
@@ -79,6 +106,7 @@ async def test_chunk_embedding_round_trip_and_fk_lineage():
         section="卷一",
         text="天干地支...",
     )
+
     valid_chunk = KnowledgeChunkRow(
         chunk_id="chunk_test_1",
         document_id="doc_test_1",
@@ -87,26 +115,34 @@ async def test_chunk_embedding_round_trip_and_fk_lineage():
         source_type="public_domain_classic",
         section="卷一",
         text="甲乙丙丁",
-        embedding=np.random.rand(512).tolist(),
+        embedding=[0.1] * 512,
+        embedding_model=EMBEDDING_MODEL,
     )
 
     async with async_session() as session:
         session.add(doc_row)
+        await session.flush()
         session.add(valid_chunk)
         await session.commit()
 
-    # 验证提取
     async with async_session() as session:
         result = await session.execute(
             select(KnowledgeChunkRow).where(KnowledgeChunkRow.chunk_id == "chunk_test_1")
         )
+
         fetched_chunk = result.scalar_one()
-        assert len(fetched_chunk.embedding) == 512
+
+    assert len(fetched_chunk.embedding) == 512
+
+    assert fetched_chunk.embedding_model == EMBEDDING_MODEL
 
 
 @pytest.mark.asyncio
 async def test_database_rejects_wrong_dimension():
-    """【绝对核心】维度铁幕验证：数据库底层必须物理拒绝非 512 维向量"""
+    """
+    PostgreSQL pgvector 必须拒绝非 512 维向量。
+    """
+
     doc_row = KnowledgeDocumentRow(
         document_id="doc_test_2",
         domain="bazi",
@@ -116,7 +152,6 @@ async def test_database_rejects_wrong_dimension():
         text="正文",
     )
 
-    # 强行混入 768 维向量
     bad_chunk = KnowledgeChunkRow(
         chunk_id="chunk_test_bad_dim",
         document_id="doc_test_2",
@@ -126,6 +161,7 @@ async def test_database_rejects_wrong_dimension():
         section="章一",
         text="正文",
         embedding=[0.1] * 768,
+        embedding_model=EMBEDDING_MODEL,
     )
 
     async with async_session() as session:

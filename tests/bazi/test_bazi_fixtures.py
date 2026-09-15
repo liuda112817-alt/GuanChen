@@ -48,13 +48,9 @@ def test_full_mapping_f01(adapter):
 
     # 2. 每柱 hidden_stems 的 stem + ten_god 极其严格的校验
     # 年柱 (酉)
-    assert [(h.stem.value, h.ten_god.value) for h in chart.year_pillar.hidden_stems] == [
-        ("辛", "比肩")
-    ]
+    assert [(h.stem.value, h.ten_god.value) for h in chart.year_pillar.hidden_stems] == [("辛", "比肩")]
     # 月柱 (子)
-    assert [(h.stem.value, h.ten_god.value) for h in chart.month_pillar.hidden_stems] == [
-        ("癸", "食神")
-    ]
+    assert [(h.stem.value, h.ten_god.value) for h in chart.month_pillar.hidden_stems] == [("癸", "食神")]
     # 日柱 (巳) -> 校验 lunar_python 1.4.8 Issue #28 锁定行为：丙、庚、戊
     assert [(h.stem.value, h.ten_god.value) for h in chart.day_pillar.hidden_stems] == [
         ("丙", "正官"),

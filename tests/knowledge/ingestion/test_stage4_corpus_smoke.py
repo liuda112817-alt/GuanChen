@@ -63,9 +63,7 @@ def test_corpus_v1_smoke_pipeline():
             f"血缘断裂！找到未知来源的 chunk，关联 document_id: {chunk.document_id}"
         )
 
-        assert chunk.chunk_id not in seen_chunk_ids, (
-            f"发生 chunk_id 全局碰撞 (重复数据块): {chunk.chunk_id}"
-        )
+        assert chunk.chunk_id not in seen_chunk_ids, f"发生 chunk_id 全局碰撞 (重复数据块): {chunk.chunk_id}"
         seen_chunk_ids.add(chunk.chunk_id)
 
     # 作为本地观察用途打印统计，但不阻断流程

@@ -53,9 +53,7 @@ def run_cli():
             break
 
         elif isinstance(result, NeedUserInput):
-            print(
-                f"\n [系统提示] 出生资料不完整，请继续补充 (针对问题: '{result.original_question}')"
-            )
+            print(f"\n [系统提示] 出生资料不完整，请继续补充 (针对问题: '{result.original_question}')")
             patch_kwargs = {}
             for field in result.missing_fields:
                 prompt_str = FIELD_PROMPTS.get(field, f"请输入 {field}: ")

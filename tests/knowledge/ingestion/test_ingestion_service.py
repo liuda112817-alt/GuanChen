@@ -9,27 +9,42 @@ from guanchen_v2.knowledge.ingestion.chunker import KnowledgeDocumentChunker
 from guanchen_v2.knowledge.ingestion.errors import KnowledgeChunkingError
 from guanchen_v2.knowledge.ingestion.service import KnowledgeIngestionService
 from guanchen_v2.knowledge.models import KnowledgeDocument, KnowledgeDomain, SourceType
-from guanchen_v2.knowledge.persistence.database import async_session, engine, init_db
-from guanchen_v2.knowledge.persistence.models import KnowledgeChunkRow, KnowledgeDocumentRow
+from guanchen_v2.knowledge.persistence.database import (
+    async_session,
+    dispose_db,
+    get_engine,
+    init_db,
+)
+from guanchen_v2.knowledge.persistence.models import (
+    Base,
+    KnowledgeChunkRow,
+    KnowledgeDocumentRow,
+)
 
 pytestmark = pytest.mark.integration
 
 
 @pytest.fixture(autouse=True)
 async def setup_database():
-    """每次运行测试前清空环境，重建立 PGVector 架构表。"""
     await init_db()
-    yield
-    from guanchen_v2.knowledge.persistence.models import Base
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    try:
+        yield
+    finally:
+        try:
+            async with get_engine().begin() as conn:
+                await conn.run_sync(Base.metadata.drop_all)
+        finally:
+            await dispose_db()
 
 
 def _create_mock_adapter():
-    """造一个假的大模型，返回确定性、数量相等的纯假 512 维列表。"""
     adapter = MagicMock(spec=BgeEmbeddingAdapter)
+
+    adapter.model_name = BgeEmbeddingAdapter.MODEL_NAME
+
     adapter.embed_documents.side_effect = lambda chunks: [[0.5] * 512 for _ in chunks]
+
     return adapter
 
 
@@ -76,6 +91,7 @@ async def test_idempotent_ingestion_success_happy_path():
         saved_chunks = res_chunks.scalars().all()
         assert len(saved_chunks) == 1
         assert len(saved_chunks[0].embedding) == 512
+        assert saved_chunks[0].embedding_model == BgeEmbeddingAdapter.MODEL_NAME
 
 
 @pytest.mark.asyncio
@@ -133,6 +149,7 @@ async def test_idempotent_ingestion_rollback_on_partial_failure():
     """S4 终极战役：基于 PostgreSQL 底层报错触发的物理级大回滚。"""
     chunker = KnowledgeDocumentChunker(max_chars=800, chunk_overlap=80)
     adapter = MagicMock(spec=BgeEmbeddingAdapter)
+    adapter.model_name = BgeEmbeddingAdapter.MODEL_NAME
 
     # 设局：只要碰到含有特定词汇的 Chunk，就向数据库返回 PostgreSQL pgvector 无法忍受的 768 维瞎编向量！
     def fake_embed(chunks):
@@ -162,9 +179,7 @@ async def test_idempotent_ingestion_rollback_on_partial_failure():
         # Document 回退如初
         saved_doc = (
             await session.execute(
-                select(KnowledgeDocumentRow).where(
-                    KnowledgeDocumentRow.document_id == doc_v1.document_id
-                )
+                select(KnowledgeDocumentRow).where(KnowledgeDocumentRow.document_id == doc_v1.document_id)
             )
         ).scalar_one()
         assert saved_doc.text == "绝不容篡改的正确初版。"
@@ -173,9 +188,7 @@ async def test_idempotent_ingestion_rollback_on_partial_failure():
         saved_chunks = (
             (
                 await session.execute(
-                    select(KnowledgeChunkRow).where(
-                        KnowledgeChunkRow.document_id == doc_v1.document_id
-                    )
+                    select(KnowledgeChunkRow).where(KnowledgeChunkRow.document_id == doc_v1.document_id)
                 )
             )
             .scalars()

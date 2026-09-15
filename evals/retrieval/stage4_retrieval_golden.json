@@ -1,0 +1,587 @@
+[
+  {
+    "case_id": "bazi_001",
+    "query": "甲木在春天和秋天的喜忌分别是什么？",
+    "relevant_chunk_ids": [
+      "a3994af2baba956aae4cadfea4f891b8"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "天干特性与季节喜忌"
+  },
+  {
+    "case_id": "bazi_002",
+    "query": "为什么说丙火能煅庚金，逢辛反怯？",
+    "relevant_chunk_ids": [
+      "2e8c3922a61a27d71dcc34ee0cae94f3"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "天干生克特性"
+  },
+  {
+    "case_id": "bazi_003",
+    "query": "辛金的特性是什么？为什么它畏惧土多？",
+    "relevant_chunk_ids": [
+      "00bb4b117396d7c7383d96864bb77d2a"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "天干阴阳与喜忌"
+  },
+  {
+    "case_id": "bazi_004",
+    "query": "壬水通河的刚中之德表现在哪里？",
+    "relevant_chunk_ids": [
+      "19028fff864737cdaec1f220e75df7e8"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "水之特性解读"
+  },
+  {
+    "case_id": "bazi_005",
+    "query": "阳支和阴支在应吉凶时的表现速度有什么不同？",
+    "relevant_chunk_ids": [
+      "cd820032b4ae96b726d01c7abb34cbc1"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "地支动静之别"
+  },
+  {
+    "case_id": "bazi_006",
+    "query": "地支相冲时，旺神冲衰神和衰神冲旺神分别会有什么结果？",
+    "relevant_chunk_ids": [
+      "a2678514846ac9c1a871fb1aec135e51"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "地支冲克法则"
+  },
+  {
+    "case_id": "bazi_007",
+    "query": "两气合而成象在八字中指的是什么？",
+    "relevant_chunk_ids": [
+      "332f44e4699d0f44810c893825995c9e"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "成象格局定义"
+  },
+  {
+    "case_id": "bazi_008",
+    "query": "月令在八字命理中为什么重要？为什么说它像人的家宅？",
+    "relevant_chunk_ids": [
+      "50c99bbbdebf28bcbb256538da3a4832"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "提纲月令的作用"
+  },
+  {
+    "case_id": "bazi_009",
+    "query": "判断五行衰旺的基本原则是什么？什么情况下旺不能损？",
+    "relevant_chunk_ids": [
+      "617de59ffc027092a1e465212e4d0ee3"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "衰旺辨证"
+  },
+  {
+    "case_id": "bazi_010",
+    "query": "如何寻找八字命局中的源头？",
+    "relevant_chunk_ids": [
+      "94da5470894c7b1814b373ebe767384c"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "源头流向分析"
+  },
+  {
+    "case_id": "bazi_011",
+    "query": "八字中什么是通关？木土相克时需要什么通关？",
+    "relevant_chunk_ids": [
+      "1300af5f35a11d949b44531dfee345ed"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "五行通关法"
+  },
+  {
+    "case_id": "bazi_012",
+    "query": "官杀混杂在什么情况下算混，什么情况不算混？",
+    "relevant_chunk_ids": [
+      "dd7f83a71235c61b47342e61ce3c3705"
+    ],
+    "filters": {
+      "source_titles": [
+        "《滴天髓阐微》"
+      ]
+    },
+    "note": "官杀清浊分辨"
+  },
+  {
+    "case_id": "bazi_013",
+    "query": "伤官格在什么情况下可以见官星？",
+    "relevant_chunk_ids": [
+      "bdd226cc9b9c3787576997e248c0e178"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "伤官见官的例外"
+  },
+  {
+    "case_id": "bazi_014",
+    "query": "遇到从象格局时，应该如何取用神？",
+    "relevant_chunk_ids": [
+      "c3fa1015b25c0737d82bd11e1cf7c6e5"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "从格取用神"
+  },
+  {
+    "case_id": "bazi_015",
+    "query": "君赖臣生在五行生克中是什么原理？",
+    "relevant_chunk_ids": [
+      "7920aa7a3915448d9abe3646e39e5f17"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "反局生克原理"
+  },
+  {
+    "case_id": "bazi_016",
+    "query": "八字里财气通门户是指什么特征？",
+    "relevant_chunk_ids": [
+      "04092e80ed5464f73a525923e9e76eab"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "富命特征查询"
+  },
+  {
+    "case_id": "bazi_017",
+    "query": "命理中官星有理会代表什么？",
+    "relevant_chunk_ids": [
+      "7732f0abe447bdab377b5b6ba205e4b3"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "贵命特征查询"
+  },
+  {
+    "case_id": "bazi_018",
+    "query": "宇宙造化之初，太初、太始、太素分别代表什么状态？",
+    "relevant_chunk_ids": [
+      "d833d8f51a01509292572dc4d66fddb2"
+    ],
+    "filters": {
+      "source_titles": [
+        "《三命通会》"
+      ]
+    },
+    "note": "阴阳造化哲学溯源"
+  },
+  {
+    "case_id": "bazi_019",
+    "query": "六十甲子纳音的起源和原理是什么？",
+    "relevant_chunk_ids": [
+      "cfe48fc5724e4e377c38cafc70bfbebb"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "纳音基础理论"
+  },
+  {
+    "case_id": "bazi_020",
+    "query": "甲子乙丑海中金需要什么样的五行条件才能成器？",
+    "relevant_chunk_ids": [
+      "17c411c41c5bca89d224a110d9890e28"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "具体纳音象义"
+  },
+  {
+    "case_id": "bazi_021",
+    "query": "丙寅丁卯炉中火最喜欢什么五行相生？",
+    "relevant_chunk_ids": [
+      "e50e2b5b30886172cfb6d94f461e32d2"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "火性纳音解析"
+  },
+  {
+    "case_id": "bazi_022",
+    "query": "壬戌和癸亥大海水在清浊上有什么区别？",
+    "relevant_chunk_ids": [
+      "bb4beda5c48fc2e437bc37e34fdc94c3"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "水性纳音对比"
+  },
+  {
+    "case_id": "bazi_023",
+    "query": "地支相冲为什么被称为取七位为冲？",
+    "relevant_chunk_ids": [
+      "d0deb2e63b14008b1bbe15165aee2b3e"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "冲克数学原理"
+  },
+  {
+    "case_id": "bazi_024",
+    "query": "驿马的推算原理是什么？",
+    "relevant_chunk_ids": [
+      "e1ee0c58827672e2cd010cc0d86c555e"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "神煞算法解释"
+  },
+  {
+    "case_id": "bazi_025",
+    "query": "天乙贵人在星辰中处于什么位置？",
+    "relevant_chunk_ids": [
+      "f1344569533725c38cefe70ea6762b92"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "天乙贵人神格来源"
+  },
+  {
+    "case_id": "bazi_026",
+    "query": "命理学中的三奇是指什么？",
+    "relevant_chunk_ids": [
+      "0486c962e95dfc6ca14d85105357f528"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "三奇贵神定义"
+  },
+  {
+    "case_id": "bazi_027",
+    "query": "构成曲直格的必要条件是什么？如果只有卯没有亥算成格吗？",
+    "relevant_chunk_ids": [
+      "b6c1903a2b186108aefeca07358e7b05"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "曲直格特殊要求"
+  },
+  {
+    "case_id": "bazi_028",
+    "query": "炎上格最忌讳遇到什么五行和地支？",
+    "relevant_chunk_ids": [
+      "ef56d2e397d43444897bed50a6427e6a"
+    ],
+    "filters": {
+      "domains": [
+        "bazi"
+      ]
+    },
+    "note": "炎上格忌神分析"
+  },
+  {
+    "case_id": "bazi_029",
+    "query": "天干中甲木为什么会与己土相合？",
+    "relevant_chunk_ids": [
+      "7cfdce2b57e3598d968eaeea6149956b"
+    ],
+    "filters": {
+      "source_titles": [
+        "《渊海子平》"
+      ]
+    },
+    "note": "干合底层逻辑"
+  },
+  {
+    "case_id": "bazi_030",
+    "query": "为什么有些日子被称为十恶大败日？",
+    "relevant_chunk_ids": [
+      "d10194ede7923f68eb27717430933103"
+    ],
+    "filters": {
+      "source_titles": [
+        "《渊海子平》"
+      ]
+    },
+    "note": "凶神恶煞解释"
+  },
+  {
+    "case_id": "dream_001",
+    "query": "梦见梳头洗脸，在《周公解梦》中有什么说法？",
+    "relevant_chunk_ids": [
+      "ca7d1c9e3f9ae3ce7ef85fea67898bbf"
+    ],
+    "filters": {
+      "domains": [
+        "dream"
+      ]
+    },
+    "note": "《周公解梦》三、身体 面目 齿发：梳头洗面"
+  },
+  {
+    "case_id": "dream_002",
+    "query": "梦见镜子破了，在《周公解梦》中有什么说法？",
+    "relevant_chunk_ids": [
+      "5c3b9f617576a91a7ad31186beb6aacf"
+    ],
+    "filters": {
+      "domains": [
+        "dream"
+      ]
+    },
+    "note": "《周公解梦》十、镜环 钗钏 梳蓖：镜破"
+  },
+  {
+    "case_id": "dream_003",
+    "query": "梦见乘船渡过江河，在《周公解梦》中有什么说法？",
+    "relevant_chunk_ids": [
+      "4f73fb6df8a48d79da338743d5a1b8a6"
+    ],
+    "filters": {
+      "domains": [
+        "dream"
+      ]
+    },
+    "note": "《周公解梦》十二、船车 游行 物价：乘船渡江河"
+  },
+  {
+    "case_id": "dream_004",
+    "query": "梦见夫妻互相打架，在《周公解梦》中有什么说法？",
+    "relevant_chunk_ids": [
+      "419da7f13bb0713b5b5b335cffc95871"
+    ],
+    "filters": {
+      "domains": [
+        "dream"
+      ]
+    },
+    "note": "《周公解梦》十四、夫妻 产孕 交欢：夫妻相打"
+  },
+  {
+    "case_id": "dream_005",
+    "query": "梦见吃生肉和熟肉，在《周公解梦》中分别有什么说法？",
+    "relevant_chunk_ids": [
+      "a4bd6a4b2738cefa9773251149e0da99"
+    ],
+    "filters": {
+      "domains": [
+        "dream"
+      ]
+    },
+    "note": "《周公解梦》十五、饮食 酒肉 瓜果：生肉与熟肉"
+  },
+  {
+    "case_id": "dream_006",
+    "query": "梦见死人复活，在《周公解梦》中有什么说法？",
+    "relevant_chunk_ids": [
+      "5ebf212d9d24fa7ad7988db0a323fe82"
+    ],
+    "filters": {
+      "domains": [
+        "dream"
+      ]
+    },
+    "note": "《周公解梦》十八、哀乐 病死 歌唱：死人复活"
+  },
+  {
+    "case_id": "dream_007",
+    "query": "梦见大水澄清，在《周公解梦》中有什么说法？",
+    "relevant_chunk_ids": [
+      "e6986f24bf1ec24a0dd64754f4a72cb0"
+    ],
+    "filters": {
+      "domains": [
+        "dream"
+      ]
+    },
+    "note": "《周公解梦》二十三、水火 盗贼 灯烛：大水澄清"
+  },
+  {
+    "case_id": "dream_008",
+    "query": "梦见蛇化成龙，在《周公解梦》中有什么说法？",
+    "relevant_chunk_ids": [
+      "a2647d335dd5819a5d21cd0502a375c2"
+    ],
+    "filters": {
+      "domains": [
+        "dream"
+      ]
+    },
+    "note": "《周公解梦》二十五、龙蛇 禽兽 等类：蛇化龙"
+  },
+  {
+    "case_id": "dream_009",
+    "query": "梦见禾谷成熟丰收，在《周公解梦》中有什么说法？",
+    "relevant_chunk_ids": [
+      "8f2731f17cad4ec4f18ee6fcc60b8dbd"
+    ],
+    "filters": {
+      "domains": [
+        "dream"
+      ]
+    },
+    "note": "《周公解梦》二十二、田园 五谷 耕种：禾丰熟"
+  },
+  {
+    "case_id": "dream_010",
+    "query": "梦见张网捕鱼，在《周公解梦》中有什么说法？",
+    "relevant_chunk_ids": [
+      "8c093d6980a0f0a2010b924dccc1287b"
+    ],
+    "filters": {
+      "domains": [
+        "dream"
+      ]
+    },
+    "note": "《周公解梦》二十七、龟鳖 鱼虾 昆虫：张网捕鱼"
+  },
+  {
+    "case_id": "yijing_001",
+    "query": "泰卦为什么说“天地交，而万物通”？",
+    "relevant_chunk_ids": [
+      "6c1c351f279c05966af7d5a9bbf00c4c"
+    ],
+    "filters": {
+      "domains": [
+        "yijing"
+      ]
+    },
+    "note": "《周易》第十一卦 泰：天地交而万物通"
+  },
+  {
+    "case_id": "yijing_002",
+    "query": "否卦为什么说“天地不交，而万物不通”？",
+    "relevant_chunk_ids": [
+      "bf8d74acbba675655c5e0685634b12ed"
+    ],
+    "filters": {
+      "domains": [
+        "yijing"
+      ]
+    },
+    "note": "《周易》第十二卦 否：天地不交而万物不通"
+  },
+  {
+    "case_id": "yijing_003",
+    "query": "习坎卦为什么强调“行险而不失其信”？",
+    "relevant_chunk_ids": [
+      "024442e4e896acf2d1ae8f36b067c413"
+    ],
+    "filters": {
+      "domains": [
+        "yijing"
+      ]
+    },
+    "note": "《周易》第二十九卦 坎：重险与守信"
+  },
+  {
+    "case_id": "yijing_004",
+    "query": "鼎卦中“木上有火”表达了什么卦象？",
+    "relevant_chunk_ids": [
+      "a19c1240a99b3d48d2c57051dc5aa1b0"
+    ],
+    "filters": {
+      "domains": [
+        "yijing"
+      ]
+    },
+    "note": "《周易》第五十卦 鼎：木上有火"
+  },
+  {
+    "case_id": "yijing_005",
+    "query": "震卦为什么说“君子以恐惧修身”？",
+    "relevant_chunk_ids": [
+      "5d7f8884876191dd262a5a4647e02044"
+    ],
+    "filters": {
+      "domains": [
+        "yijing"
+      ]
+    },
+    "note": "《周易》第五十一卦 震：恐惧修身"
+  }
+]

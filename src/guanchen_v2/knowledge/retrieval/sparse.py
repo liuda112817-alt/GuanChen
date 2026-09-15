@@ -132,9 +132,7 @@ class SparseRetriever:
             if not query_tokens:
                 return []
 
-            docs_indices, scores = self._bm25_index.retrieve(
-                [query_tokens], k=len(self._chunk_snapshots)
-            )
+            docs_indices, scores = self._bm25_index.retrieve([query_tokens], k=len(self._chunk_snapshots))
 
             indices = docs_indices[0].tolist()
             raw_scores = scores[0].tolist()

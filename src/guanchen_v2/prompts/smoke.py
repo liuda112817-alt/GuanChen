@@ -9,6 +9,5 @@ _STRUCTURED_SMOKE_SOURCE = (
 def build_structured_smoke_prompt() -> str:
     """构建结构化输出的纯函数。负责将任务指令与来源数据组合成 Prompt。"""
     return (
-        "请提取出下列文本中的项目名称以及所有的 Agent 名称列表。\n\n"
-        f"来源文本：\n{_STRUCTURED_SMOKE_SOURCE}"
+        f"请提取出下列文本中的项目名称以及所有的 Agent 名称列表。\n\n来源文本：\n{_STRUCTURED_SMOKE_SOURCE}"
     )

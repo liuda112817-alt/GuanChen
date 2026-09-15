@@ -1,22 +1,36 @@
-class BaziAgentError(Exception):
-    """GuanChen Agent 基础异常"""
+from guanchen_v2.bazi.exceptions import BaziError
+
+
+class BaziAgentError(BaziError):
+    """
+    GuanChen Bazi Agent 异常根类型。
+    """
 
     pass
 
 
 class BaziAgentExecutionError(BaziAgentError):
-    """Agent runtime / model / structured output / call budget 环节执行失败"""
+    """
+    Agent runtime / model / structured output /
+    call budget 等执行阶段失败。
+    """
 
     pass
 
 
 class BaziAgentInvariantError(BaziAgentError):
-    """Agent 虽然执行结束，但违反了业务后置条件（如未调用排盘工具）"""
+    """
+    Agent 执行完成，
+    但违反 GuanChen Bazi Agent 后置条件。
+    """
 
     pass
 
 
 class BaziAgentCitationError(BaziAgentError):
-    """模型伪造、或乱报了不属于本轮检索的 chunk_id。"""
+    """
+    Agent 返回了不属于本轮合法 Retrieval Evidence
+    的 chunk_id。
+    """
 
     pass

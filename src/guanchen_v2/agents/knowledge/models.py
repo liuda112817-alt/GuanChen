@@ -12,9 +12,7 @@ class KnowledgeAnswerDraft(BaseModel):
     """
 
     answer: str = Field(description="基于提供证据对用户问题的解答与分析。")
-    evidence_sufficient: bool = Field(
-        description="标识现有的检索证据是否足以完整、确切地回答该问题。"
-    )
+    evidence_sufficient: bool = Field(description="标识现有的检索证据是否足以完整、确切地回答该问题。")
     used_chunk_ids: list[str] = Field(description="实际在回答中被引用和参考的证据块 ID 列表。")
 
     model_config = {"extra": "forbid"}

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # 配置导出选项
-OUTPUT_FILE = "project_source_code.txt"
+OUTPUT_FILE = "artifacts/dev/project_source_code.txt"
 ROOT_DIR = "."
 
 # 需要导出的文件后缀

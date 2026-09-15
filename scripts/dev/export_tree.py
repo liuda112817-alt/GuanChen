@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # 配置导出选项
-OUTPUT_FILE = "project_directory_tree.txt"
+OUTPUT_FILE = "artifacts/dev/project_directory_tree.txt"
 ROOT_DIR = "."
 
 # 需要忽略的目录（保持画面整洁）

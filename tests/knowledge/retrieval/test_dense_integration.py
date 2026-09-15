@@ -6,8 +6,17 @@ from sqlalchemy.exc import DBAPIError
 
 from guanchen_v2.knowledge.embeddings import BgeEmbeddingAdapter
 from guanchen_v2.knowledge.errors import KnowledgeEmbeddingError, KnowledgeRetrievalError
-from guanchen_v2.knowledge.persistence.database import async_session, engine, init_db
-from guanchen_v2.knowledge.persistence.models import KnowledgeChunkRow, KnowledgeDocumentRow
+from guanchen_v2.knowledge.persistence.database import (
+    async_session,
+    dispose_db,
+    get_engine,
+    init_db,
+)
+from guanchen_v2.knowledge.persistence.models import (
+    Base,
+    KnowledgeChunkRow,
+    KnowledgeDocumentRow,
+)
 from guanchen_v2.knowledge.retrieval.dense import DenseRetriever
 
 pytestmark = pytest.mark.integration
@@ -15,18 +24,27 @@ pytestmark = pytest.mark.integration
 
 @pytest.fixture(autouse=True)
 async def setup_database():
-    """每次测试前重建并清空 Schema。"""
     await init_db()
-    yield
-    from guanchen_v2.knowledge.persistence.models import Base
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    try:
+        yield
+    finally:
+        try:
+            async with get_engine().begin() as conn:
+                await conn.run_sync(Base.metadata.drop_all)
+        finally:
+            await dispose_db()
 
 
-async def _seed_data(session, chunk_id: str, vector: list[float]):
-    """由于 FK 约束，每次插入 Chunk 都必须伴生 Document"""
+async def _seed_data(
+    session,
+    chunk_id: str,
+    vector: list[float],
+    *,
+    embedding_model: str = (BgeEmbeddingAdapter.MODEL_NAME),
+):
     doc_id = f"doc_{chunk_id}"
+
     doc = KnowledgeDocumentRow(
         document_id=doc_id,
         domain="bazi",
@@ -35,6 +53,7 @@ async def _seed_data(session, chunk_id: str, vector: list[float]):
         section="S",
         text="T",
     )
+
     chunk = KnowledgeChunkRow(
         chunk_id=chunk_id,
         document_id=doc_id,
@@ -44,14 +63,24 @@ async def _seed_data(session, chunk_id: str, vector: list[float]):
         section="S",
         text="T",
         embedding=vector,
+        embedding_model=embedding_model,
     )
+
     session.add(doc)
+    await session.flush()
+
     session.add(chunk)
 
 
-def _mock_adapter_with_query_vector(q_vector: list[float]):
+def _mock_adapter_with_query_vector(
+    q_vector: list[float],
+):
     adapter = MagicMock(spec=BgeEmbeddingAdapter)
+
+    adapter.model_name = BgeEmbeddingAdapter.MODEL_NAME
+
     adapter.embed_query.return_value = q_vector
+
     return adapter
 
 
@@ -189,3 +218,35 @@ async def test_error_boundary_translates_database_crashes():
             await retriever.search("query", limit=5)
 
         assert isinstance(exc_info.value.__cause__, DBAPIError)
+
+
+@pytest.mark.asyncio
+async def test_dense_retrieval_excludes_incompatible_embedding_model():
+    vector = [0.0] * 512
+    vector[0] = 1.0
+
+    async with async_session() as session:
+        await _seed_data(
+            session,
+            "compatible",
+            vector,
+            embedding_model=(BgeEmbeddingAdapter.MODEL_NAME),
+        )
+
+        await _seed_data(
+            session,
+            "incompatible",
+            vector,
+            embedding_model=("other/model-with-512-dim"),
+        )
+
+        await session.commit()
+
+    retriever = DenseRetriever(_mock_adapter_with_query_vector(vector))
+
+    hits = await retriever.search(
+        "query",
+        limit=10,
+    )
+
+    assert [hit.chunk_id for hit in hits] == ["compatible"]

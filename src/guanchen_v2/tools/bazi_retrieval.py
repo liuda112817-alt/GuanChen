@@ -49,9 +49,7 @@ def build_retrieve_bazi_knowledge_tool(retrieval_service: RetrievalService):
         results = await retrieval_service.retrieve(query=query, filters=filters)
 
         if not results:
-            return "当前知识库未检索到足够依据支持进一步的传统理论解释。", BaziKnowledgeArtifact(
-                results=[]
-            )
+            return "当前知识库未检索到足够依据支持进一步的传统理论解释。", BaziKnowledgeArtifact(results=[])
 
         parts = ["=== BAZI KNOWLEDGE EVIDENCE ==="]
         for res in results:

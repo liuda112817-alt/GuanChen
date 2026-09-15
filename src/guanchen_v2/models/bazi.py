@@ -113,9 +113,7 @@ class BirthProfile(BaseModel):
     hour: int = Field(ge=0, le=23, description="当地民用时小时，0-23")
     minute: int = Field(ge=0, le=59, description="分钟，0-59")
     gender: Gender = Field(description="用于确定大运顺逆的性别参数")
-    birth_place_text: Optional[str] = Field(
-        default=None, description="可选出生地原始文本，v2.0 不参与排盘"
-    )
+    birth_place_text: Optional[str] = Field(default=None, description="可选出生地原始文本，v2.0 不参与排盘")
 
     @field_validator("birth_place_text")
     @classmethod
@@ -126,12 +124,25 @@ class BirthProfile(BaseModel):
         return stripped if stripped else None
 
     @model_validator(mode="after")
-    def validate_date_time(self) -> "BirthProfile":
-        """验证组合后的年月日时分是否为真实存在日期（如闰年检查）"""
+    def validate_date_time(
+        self,
+    ) -> "BirthProfile":
+        """
+        验证年月日时分组成真实存在的民用时间。
+
+        底层 datetime 异常只作为 cause 保留，
+        不进入稳定 validation message。
+        """
         try:
-            datetime(self.year, self.month, self.day, self.hour, self.minute)
-        except ValueError as e:
-            raise ValueError(f"非法的日期时间组合: {e}")
+            datetime(
+                self.year,
+                self.month,
+                self.day,
+                self.hour,
+                self.minute,
+            )
+        except ValueError as exc:
+            raise ValueError("非法的日期时间组合，请检查年月日时分。") from exc
 
         return self
 

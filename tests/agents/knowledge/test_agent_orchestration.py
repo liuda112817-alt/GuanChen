@@ -1,10 +1,14 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from pydantic import ValidationError
 
 from guanchen_v2.agents.knowledge.agent import KnowledgeAgent
 from guanchen_v2.agents.knowledge.models import KnowledgeAnswerDraft
-from guanchen_v2.knowledge.errors import KnowledgeAgentError, KnowledgeRetrievalError
+from guanchen_v2.knowledge.errors import (
+    KnowledgeAgentError,
+    KnowledgeRetrievalError,
+)
 from guanchen_v2.knowledge.models import (
     KnowledgeDomain,
     RetrievalFilter,
@@ -17,7 +21,10 @@ from guanchen_v2.knowledge.retrieval.sparse import SparseRetriever
 from guanchen_v2.llm.client import LLMClient
 
 
-def _create_result(chunk_id: str, rank: int) -> RetrievalResult:
+def _create_result(
+    chunk_id: str,
+    rank: int,
+) -> RetrievalResult:
     return RetrievalResult(
         rank=rank,
         chunk_id=chunk_id,
@@ -35,15 +42,24 @@ def _create_result(chunk_id: str, rank: int) -> RetrievalResult:
     )
 
 
+def _create_llm_mock() -> MagicMock:
+    mock_llm = MagicMock(spec_set=LLMClient)
+    mock_llm.generate_structured = AsyncMock()
+    return mock_llm
+
+
 @pytest.mark.asyncio
-async def test_retrieval_service_propagate_filters():
-    """证明 Service 在调用 Dense/Sparse 时，毫无保留地下发了统一的 Filter，没自作主张。"""
+async def test_retrieval_service_propagates_filters():
     mock_dense = MagicMock(spec=DenseRetriever)
     mock_sparse = MagicMock(spec=SparseRetriever)
+
     mock_dense.search = AsyncMock(return_value=[])
+    mock_sparse.search = AsyncMock(return_value=[])
+
     mock_rrf = MagicMock()
     mock_reranker = MagicMock()
     mock_assembler = MagicMock()
+
     mock_rrf.fuse.return_value = []
 
     service = RetrievalService(
@@ -56,12 +72,30 @@ async def test_retrieval_service_propagate_filters():
         result_limit=2,
     )
 
-    filters = RetrievalFilter(domains=frozenset({KnowledgeDomain.BAZI}))
-    await service.retrieve("Query", filters=filters)
+    filters = RetrievalFilter(
+        domains=frozenset(
+            {
+                KnowledgeDomain.BAZI,
+            }
+        )
+    )
 
-    # 双方接收到的指令和过滤器必须一模一样
-    mock_dense.search.assert_called_once_with("Query", limit=5, filters=filters)
-    mock_sparse.search.assert_called_once_with("Query", limit=5, filters=filters)
+    await service.retrieve(
+        "Query",
+        filters=filters,
+    )
+
+    mock_dense.search.assert_called_once_with(
+        "Query",
+        limit=5,
+        filters=filters,
+    )
+
+    mock_sparse.search.assert_called_once_with(
+        "Query",
+        limit=5,
+        filters=filters,
+    )
 
 
 @pytest.mark.asyncio
@@ -78,99 +112,208 @@ async def test_retrieval_service_limits_safeguards():
         )
 
     service = RetrievalService(
-        MagicMock(), MagicMock(), MagicMock(), MagicMock(), MagicMock(), 5, 2
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        5,
+        2,
     )
-    with pytest.raises(KnowledgeRetrievalError, match="不能为空"):
+
+    with pytest.raises(
+        KnowledgeRetrievalError,
+        match="不能为空",
+    ):
         await service.retrieve("   ")
 
 
 @pytest.mark.asyncio
 async def test_agent_empty_evidence_bypasses_llm_and_single_call():
-    """无证不审测试：什么都没查到时，不但 LLM 不被唤醒，而且只进行了一次检索调用。"""
     mock_service = MagicMock(spec=RetrievalService)
     mock_service.retrieve = AsyncMock(return_value=[])
-    mock_llm = MagicMock(spec=LLMClient)
-    mock_llm.generate_structured = AsyncMock()
 
-    agent = KnowledgeAgent(mock_service, mock_llm)
-    resp = await agent.answer("什么是八字？")
+    mock_llm = _create_llm_mock()
 
-    assert "无法据此作答" in resp.answer
-    assert resp.evidence_sufficient is False
-    # 【核心】：确保检索只被调用 1 次，没有诡异的自我反思重试
-    mock_service.retrieve.assert_called_once_with(query="什么是八字？", filters=None)
-    mock_llm.generate_structured.assert_not_called()
+    agent = KnowledgeAgent(
+        mock_service,
+        mock_llm,
+    )
+
+    response = await agent.answer("什么是八字？")
+
+    assert "无法据此作答" in response.answer
+    assert response.evidence_sufficient is False
+    assert response.citations == ()
+
+    mock_service.retrieve.assert_awaited_once_with(
+        query="什么是八字？",
+        filters=None,
+    )
+
+    mock_llm.generate_structured.assert_not_awaited()
 
 
 @pytest.mark.asyncio
-async def test_agent_zero_citations_discards_llm_hallucination():
-    """【绝对核心】无引用必杀：如果模型交白卷却夹带私货，代码将彻底销毁其回答，返回防幻觉标准底牌！"""
+async def test_agent_uses_canonical_structured_llm_contract():
     mock_service = MagicMock(spec=RetrievalService)
-    mock_service.retrieve = AsyncMock(return_value=[_create_result("合法", 1)])
-
-    mock_llm = MagicMock(spec=LLMClient)
-    mock_llm.generate_structured = AsyncMock(
-        return_value=KnowledgeAnswerDraft(
-            answer="这是我自己背下来的知识，我要输出给你！",
-            evidence_sufficient=False,
-            used_chunk_ids=[],  # 重点：模型没有引用任何合法证据
-        )
+    mock_service.retrieve = AsyncMock(
+        return_value=[
+            _create_result(
+                "合法_1",
+                1,
+            )
+        ]
     )
 
-    resp = await KnowledgeAgent(mock_service, mock_llm).answer("查")
+    mock_llm = _create_llm_mock()
+    mock_llm.generate_structured.return_value = KnowledgeAnswerDraft(
+        answer="基于证据作答。",
+        evidence_sufficient=True,
+        used_chunk_ids=["合法_1"],
+    )
 
-    # 模型的私货被彻底物理抹除！
-    assert resp.answer == "当前知识库中没有检索到足够依据，无法据此作答。"
-    assert resp.evidence_sufficient is False
-    assert len(resp.citations) == 0
+    agent = KnowledgeAgent(
+        mock_service,
+        mock_llm,
+    )
+
+    await agent.answer("查询")
+
+    mock_llm.generate_structured.assert_awaited_once()
+
+    kwargs = mock_llm.generate_structured.await_args.kwargs
+
+    assert set(kwargs) == {
+        "system_prompt",
+        "user_prompt",
+        "schema",
+    }
+
+    assert kwargs["schema"] is KnowledgeAnswerDraft
+
+    assert "GuanChen Knowledge Agent" in kwargs["system_prompt"]
+
+    assert "=== EVIDENCE START ===" in kwargs["user_prompt"]
+
+    assert "问题：查询" in kwargs["user_prompt"]
 
 
 @pytest.mark.asyncio
-async def test_agent_insufficient_evidence_enforces_stamp_securely():
-    """部分引用防线：模型引用了证据，但又调皮捣蛋试图混淆前缀，代码强制盖章于最前方。"""
+async def test_agent_zero_citations_discards_llm_answer():
     mock_service = MagicMock(spec=RetrievalService)
-    mock_service.retrieve = AsyncMock(return_value=[_create_result("合法_1", 1)])
 
-    mock_llm = MagicMock(spec=LLMClient)
-    mock_llm.generate_structured = AsyncMock(
-        return_value=KnowledgeAnswerDraft(
-            answer="哪怕这里有 现有检索证据不足以完整回答该问题 的子串，你也不能放过我。",
-            evidence_sufficient=False,
-            used_chunk_ids=["合法_1"],  # 重点：提供了合法引用，所以这是部分回答
-        )
+    mock_service.retrieve = AsyncMock(
+        return_value=[
+            _create_result(
+                "合法",
+                1,
+            )
+        ]
     )
 
-    resp = await KnowledgeAgent(mock_service, mock_llm).answer("查")
+    mock_llm = _create_llm_mock()
 
-    # 无论中间有多像，开头必定被盖上强制钢印
-    assert resp.answer.startswith("现有检索证据不足以完整回答该问题。\n\n")
-    assert "哪怕这里有" in resp.answer
+    mock_llm.generate_structured.return_value = KnowledgeAnswerDraft(
+        answer="没有引用证据的回答。",
+        evidence_sufficient=False,
+        used_chunk_ids=[],
+    )
+
+    response = await KnowledgeAgent(
+        mock_service,
+        mock_llm,
+    ).answer("查")
+
+    assert response.answer == "当前知识库中没有检索到足够依据，无法据此作答。"
+
+    assert response.evidence_sufficient is False
+    assert response.citations == ()
+
+
+@pytest.mark.asyncio
+async def test_agent_insufficient_evidence_enforces_stamp():
+    mock_service = MagicMock(spec=RetrievalService)
+
+    mock_service.retrieve = AsyncMock(
+        return_value=[
+            _create_result(
+                "合法_1",
+                1,
+            )
+        ]
+    )
+
+    mock_llm = _create_llm_mock()
+
+    mock_llm.generate_structured.return_value = KnowledgeAnswerDraft(
+        answer=("这里包含部分证据支持的内容。"),
+        evidence_sufficient=False,
+        used_chunk_ids=["合法_1"],
+    )
+
+    response = await KnowledgeAgent(
+        mock_service,
+        mock_llm,
+    ).answer("查")
+
+    assert response.answer.startswith("现有检索证据不足以完整回答该问题。\n\n")
+
+    assert "这里包含部分证据支持的内容。" in (response.answer)
+
+    assert len(response.citations) == 1
+    assert response.citations[0].chunk_id == "合法_1"
 
 
 @pytest.mark.asyncio
 async def test_agent_llm_fabrication_fails_fast():
     mock_service = MagicMock(spec=RetrievalService)
-    mock_service.retrieve = AsyncMock(return_value=[_create_result("合法_1", 1)])
-    mock_llm = MagicMock(spec=LLMClient)
 
-    mock_llm.generate_structured = AsyncMock(
-        return_value=KnowledgeAnswerDraft(
-            answer="编得很圆", evidence_sufficient=True, used_chunk_ids=["合法_1", "虚构的_999"]
-        )
+    mock_service.retrieve = AsyncMock(
+        return_value=[
+            _create_result(
+                "合法_1",
+                1,
+            )
+        ]
     )
 
-    with pytest.raises(KnowledgeAgentError, match="未授权的证据编号"):
-        await KnowledgeAgent(mock_service, mock_llm).answer("查询")
+    mock_llm = _create_llm_mock()
+
+    mock_llm.generate_structured.return_value = KnowledgeAnswerDraft(
+        answer="存在伪造证据编号。",
+        evidence_sufficient=True,
+        used_chunk_ids=[
+            "合法_1",
+            "虚构的_999",
+        ],
+    )
+
+    with pytest.raises(
+        KnowledgeAgentError,
+        match="未授权的证据编号",
+    ):
+        await KnowledgeAgent(
+            mock_service,
+            mock_llm,
+        ).answer("查询")
 
 
-@pytest.mark.asyncio
-async def test_knowledge_answer_draft_pydantic_invariants():
-    """直接在模型层面拦截 '声称充分但交白卷' 的欺骗行为。"""
-    from pydantic import ValidationError
+def test_knowledge_answer_draft_pydantic_invariants():
+    with pytest.raises(
+        ValidationError,
+        match="必须至少提供一个实际引用的 chunk_id",
+    ):
+        KnowledgeAnswerDraft(
+            answer="回答",
+            evidence_sufficient=True,
+            used_chunk_ids=[],
+        )
 
-    with pytest.raises(ValidationError, match="必须至少提供一个实际引用的 chunk_id"):
-        KnowledgeAnswerDraft(answer="满分答案", evidence_sufficient=True, used_chunk_ids=[])
+    draft = KnowledgeAnswerDraft(
+        answer="证据不足。",
+        evidence_sufficient=False,
+        used_chunk_ids=[],
+    )
 
-    # 合法的不足情况
-    draft = KnowledgeAnswerDraft(answer="我不知道", evidence_sufficient=False, used_chunk_ids=[])
     assert draft.evidence_sufficient is False

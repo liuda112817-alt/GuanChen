@@ -18,9 +18,7 @@ class KnowledgeReranker:
     def __init__(self, adapter: BgeRerankerAdapter) -> None:
         self._adapter = adapter
 
-    def rerank(
-        self, query: str, hits: Sequence[RrfSearchHit], limit: int
-    ) -> list[RerankedSearchHit]:
+    def rerank(self, query: str, hits: Sequence[RrfSearchHit], limit: int) -> list[RerankedSearchHit]:
         """
         结合原 Query，对候选名单进行最后的审判与截取。
         """

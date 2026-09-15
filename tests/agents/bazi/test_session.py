@@ -24,9 +24,7 @@ def mock_runtime():
 
 
 async def test_one_turn_completion(mock_runtime):
-    session = BaziTaskSession(
-        BaziAgentInput(question="事业", year=1998, month=7, day=21), mock_runtime
-    )
+    session = BaziTaskSession(BaziAgentInput(question="事业", year=1998, month=7, day=21), mock_runtime)
     assert isinstance(await session.evaluate(), NeedUserInput)
     assert mock_runtime.run.call_count == 0
 
@@ -70,9 +68,7 @@ async def test_invalid_date_combination_recovery(mock_runtime):
 
 
 async def test_completed_session_does_not_run_runtime_again(mock_runtime):
-    session = BaziTaskSession(
-        BaziAgentInput(question="事业", year=1998, month=7, day=21), mock_runtime
-    )
+    session = BaziTaskSession(BaziAgentInput(question="事业", year=1998, month=7, day=21), mock_runtime)
     result1 = await session.supplement(BaziBirthDataPatch(hour=14, minute=30, gender=Gender.MALE))
 
     result2 = await session.evaluate()

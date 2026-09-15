@@ -1,4 +1,7 @@
-from guanchen_v2.agents.knowledge.models import KnowledgeAgentResponse, KnowledgeAnswerDraft
+from guanchen_v2.agents.knowledge.models import (
+    KnowledgeAgentResponse,
+    KnowledgeAnswerDraft,
+)
 from guanchen_v2.knowledge.errors import KnowledgeAgentError
 from guanchen_v2.knowledge.models import Citation, RetrievalResult
 from guanchen_v2.knowledge.retrieval.service import RetrievalService
@@ -6,29 +9,36 @@ from guanchen_v2.llm.client import LLMClient
 
 
 class KnowledgeAgent:
-    """
-    GuanChen 受限证据回答器。
-    """
+    """GuanChen 受限证据回答器。"""
 
     INSUFFICIENT_EVIDENCE_STAMP = "现有检索证据不足以完整回答该问题。\n\n"
 
-    def __init__(self, retrieval_service: RetrievalService, llm_client: LLMClient):
+    def __init__(
+        self,
+        retrieval_service: RetrievalService,
+        llm_client: LLMClient,
+    ) -> None:
         self._retrieval = retrieval_service
         self._llm = llm_client
 
-    def _build_evidence_context(self, results: list[RetrievalResult]) -> str:
-        parts = []
+    def _build_evidence_context(
+        self,
+        results: list[RetrievalResult],
+    ) -> str:
+        parts: list[str] = []
+
         for res in results:
             parts.append(
-                f"=== EVIDENCE START ===\n"
+                "=== EVIDENCE START ===\n"
                 f"chunk_id: {res.chunk_id}\n"
                 f"domain: {res.domain.value}\n"
                 f"source_type: {res.source_type.value}\n"
                 f"source_title: {res.source_title}\n"
                 f"section: {res.section}\n"
                 f"evidence_text:\n{res.text}\n"
-                f"=== EVIDENCE END ===\n"
+                "=== EVIDENCE END ===\n"
             )
+
         return "\n".join(parts)
 
     def _build_system_prompt(self) -> str:
@@ -53,7 +63,8 @@ class KnowledgeAgent:
             "7. 当 evidence_sufficient=false 时，"
             "可以继续回答已经得到证据支持的部分，但不得凭空补齐缺失部分。\n"
             "8. used_chunk_ids 只能包含你在 answer 中实际使用的证据 chunk_id。"
-            "不要为了数量把所有提供的证据都列入。按证据第一次实际被使用的顺序填写。\n"
+            "不要为了数量把所有提供的证据都列入。"
+            "按证据第一次实际被使用的顺序填写。\n"
             "9. 不要在 answer 中自行生成 [1]、[2] 等引用编号，"
             "也不要伪造 Citation；系统会根据 used_chunk_ids 生成正式引用。\n"
             "10. 不得自行执行排盘、起卦等确定性计算。"
@@ -64,10 +75,10 @@ class KnowledgeAgent:
         if not query.strip():
             raise KnowledgeAgentError("查询问题不能为空。")
 
-        # ---------------------------------------------------------
-        # Retrieval strategy 由 RetrievalService 内部统一管理
-        # ---------------------------------------------------------
-        results = await self._retrieval.retrieve(query=query, filters=None)
+        results = await self._retrieval.retrieve(
+            query=query,
+            filters=None,
+        )
 
         if not results:
             return KnowledgeAgentResponse(
@@ -76,32 +87,28 @@ class KnowledgeAgent:
                 citations=(),
             )
 
-        # ---------------------------------------------------------
-        # 构建物证，提交大模型
-        # ---------------------------------------------------------
         system_prompt = self._build_system_prompt()
         evidence_context = self._build_evidence_context(results=results)
-        final_prompt = f"{evidence_context}\n\n问题：{query}"
+        user_prompt = f"{evidence_context}\n\n问题：{query}"
 
-        draft: KnowledgeAnswerDraft = await self._llm.generate_structured(
-            prompt=final_prompt,
+        draft = await self._llm.generate_structured(
             system_prompt=system_prompt,
-            response_model=KnowledgeAnswerDraft,
+            user_prompt=user_prompt,
+            schema=KnowledgeAnswerDraft,
         )
 
-        # ---------------------------------------------------------
-        # 清洗并核实 LLM 提交上来的伪证与乱序
-        # ---------------------------------------------------------
-        legal_chunk_ids = {r.chunk_id for r in results}
-        deduped_ids = []
-        seen = set()
-        for cid in draft.used_chunk_ids:
-            if cid not in seen:
-                deduped_ids.append(cid)
-                seen.add(cid)
+        legal_chunk_ids = {result.chunk_id for result in results}
 
-        for cid in deduped_ids:
-            if cid not in legal_chunk_ids:
+        deduped_ids: list[str] = []
+        seen: set[str] = set()
+
+        for chunk_id in draft.used_chunk_ids:
+            if chunk_id not in seen:
+                deduped_ids.append(chunk_id)
+                seen.add(chunk_id)
+
+        for chunk_id in deduped_ids:
+            if chunk_id not in legal_chunk_ids:
                 raise KnowledgeAgentError("模型返回了未授权的证据编号。")
 
         if not deduped_ids:
@@ -112,15 +119,16 @@ class KnowledgeAgent:
             )
 
         final_answer = draft.answer
+
         if not draft.evidence_sufficient:
             if not final_answer.startswith(self.INSUFFICIENT_EVIDENCE_STAMP):
                 final_answer = self.INSUFFICIENT_EVIDENCE_STAMP + final_answer
 
-        result_map = {r.chunk_id: r for r in results}
-        citations = []
-        for cid in deduped_ids:
-            res = result_map[cid]
-            citations.append(Citation.from_retrieval_result(res))
+        result_map = {result.chunk_id: result for result in results}
+
+        citations: list[Citation] = []
+        for chunk_id in deduped_ids:
+            citations.append(Citation.from_retrieval_result(result_map[chunk_id]))
 
         return KnowledgeAgentResponse(
             answer=final_answer.strip(),
