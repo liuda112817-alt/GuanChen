@@ -205,27 +205,55 @@ async def test_defensive_invalid_return_type_fails(
 
 
 @pytest.mark.asyncio
-async def test_cascading_correction_intent(extractor, fake_llm_client):
+async def test_cascading_correction_intent(
+    extractor,
+    fake_llm_client,
+):
     """
-    回归测试：验证模型能否在一次 patch 中，
-    同时输出 people 和 actions 两个相关字段的 correction。
+    回归测试：
+    DreamExtractor 应接受一次包含多个 correction 的 DreamPatch，
+    后续 merge 应能正确应用级联字段修正。
     """
     record = start_new_dream()
+
     record.elements.people = ["妈妈"]
     record.elements.actions = ["妈妈站在门边"]
 
-    # 模拟大模型听懂了 Prompt 规则，返回了级联修改的 Patch
-    fake_llm_client.ainvoke.return_value = DreamPatch(
+    expected_patch = DreamPatch(
         corrections=[
-            DreamCorrection(field=DreamField.PEOPLE, old_value="妈妈", new_value="班主任"),
-            DreamCorrection(field=DreamField.ACTIONS, old_value="妈妈站在门边", new_value="班主任站在门边"),
+            DreamCorrection(
+                field=DreamField.PEOPLE,
+                old_value="妈妈",
+                new_value="班主任",
+            ),
+            DreamCorrection(
+                field=DreamField.ACTIONS,
+                old_value="妈妈站在门边",
+                new_value="班主任站在门边",
+            ),
         ]
     )
 
-    patch = await extractor.extract("不是妈妈，是以前的班主任", current_record=record)
+    fake_llm_client.generate_structured.return_value = expected_patch
 
-    # 确保合并逻辑 (merge_dream_record) 能正确处理这种多重更正
-    updated_record = merge_dream_record(record, patch)
+    patch = await extractor.extract(
+        "不是妈妈，是以前的班主任",
+        current_record=record,
+    )
+
+    assert patch == expected_patch
+
+    fake_llm_client.generate_structured.assert_awaited_once()
+
+    kwargs = fake_llm_client.generate_structured.await_args.kwargs
+
+    assert kwargs["schema"] is DreamPatch
+    assert "不是妈妈，是以前的班主任" in kwargs["user_prompt"]
+
+    updated_record = merge_dream_record(
+        record,
+        patch,
+    )
 
     assert "妈妈" not in updated_record.elements.people
     assert "班主任" in updated_record.elements.people

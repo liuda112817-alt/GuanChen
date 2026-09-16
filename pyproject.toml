@@ -10,6 +10,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "asyncpg>=0.31.0",
     "bm25s>=0.3.11",
+    "ichingpy>=0.1.10",
     "jieba>=0.42.1",
     "langchain>=1.4.0",
     "langchain-core>=1.6.2",

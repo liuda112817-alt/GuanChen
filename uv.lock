@@ -257,6 +257,7 @@ source = { editable = "." }
 dependencies = [
     { name = "asyncpg" },
     { name = "bm25s" },
+    { name = "ichingpy" },
     { name = "jieba" },
     { name = "langchain" },
     { name = "langchain-core" },
@@ -284,6 +285,7 @@ dev = [
 requires-dist = [
     { name = "asyncpg", specifier = ">=0.31.0" },
     { name = "bm25s", specifier = ">=0.3.11" },
+    { name = "ichingpy", specifier = ">=0.1.10" },
     { name = "jieba", specifier = ">=0.42.1" },
     { name = "langchain", specifier = ">=1.4.0" },
     { name = "langchain-core", specifier = ">=1.6.2" },
@@ -417,6 +419,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9b/f0/61159db90b5cd275d55516fe27920828e7d3be4053fdbdb27c3f70e5f1ef/huggingface_hub-1.31.0.tar.gz", hash = "sha256:f8e9e710a210613fa5d0f26bba6da05ef4aef9fba5a0f23f508f5ac4d08b6f90", size = 968039, upload-time = "2026-09-10T10:27:22.724Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c3/7f/3f886a625043b77312b80da2f2bf00b5ecbf5a73061af1aa0259cd258c9d/huggingface_hub-1.31.0-py3-none-any.whl", hash = "sha256:9dbb6a503cbe2494ea666695207e7262d410659e09134059deb83e5480864667", size = 798313, upload-time = "2026-09-10T10:27:20.798Z" },
+]
+
+[[package]]
+name = "ichingpy"
+version = "0.1.10"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5f/23/8d2bb42f52138d8e725976b60e0290c2eaf3419720f3c63baac143fdfec8/ichingpy-0.1.10.tar.gz", hash = "sha256:dcd0167e4d3beaa25c6993c1b265a4ab09f7999072c57181030d62008caede74", size = 18738, upload-time = "2025-02-09T08:35:05.917Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fb/54/1c782108427f4602ac0c3d1e6b48d9c0c0bda8ebceed77a288236bf31941/ichingpy-0.1.10-py3-none-any.whl", hash = "sha256:a7829d8c2a3cadc9214b98573c07b15e26050674cfee4232a526e51d82e2bff4", size = 27358, upload-time = "2025-02-09T08:35:03.706Z" },
 ]
 
 [[package]]

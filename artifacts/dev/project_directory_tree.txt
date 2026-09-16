@@ -1,4 +1,10 @@
 GuanChen v2/
+├── artifacts
+│   └── dev
+│       ├── corpus_chunk_dict.txt
+│       ├── project_directory_tree.txt
+│       ├── project_source_code.txt
+│       └── test_localsystem.txt
 ├── data
 │   └── knowledge
 │       ├── raw_verified
@@ -33,6 +39,11 @@ GuanChen v2/
 │   │   ├── 003-use-ichingpy-for-liuyao-calculation.md
 │   │   ├── 004-introduce-langgraph-only-when-required.md
 │   │   └── 005-use-mcp-as-external-interoperability-layer.md
+│   ├── archive
+│   │   └── stage0_artifacts_index.md
+│   ├── reference
+│   │   ├── 项目规划.docx
+│   │   └── 项目规划.txt
 │   ├── agent_contracts.md
 │   ├── architecture.md
 │   ├── backlog_v2_1.md
@@ -47,21 +58,23 @@ GuanChen v2/
 │   └── user_flows.md
 ├── evals
 │   └── retrieval
-│       ├── failure_report.jsonl
-│       ├── stage4_retrieval_eval.json
+│       ├── stage4_retrieval_failures.jsonl
+│       ├── stage4_retrieval_golden.json
 │       └── stage4_retrieval_report.json
 ├── scripts
+│   ├── dev
+│   │   ├── export_code.py
+│   │   ├── export_tree.py
+│   │   └── peek_corpus_chunks.py
+│   ├── smoke
+│   │   ├── smoke_bazi_agent.py
+│   │   ├── smoke_dream_extractor.py
+│   │   ├── smoke_llm.py
+│   │   └── smoke_reranker.py
 │   ├── bazi_cli.py
 │   ├── eval_retrieval.py
-│   ├── export_code.py
-│   ├── export_tree.py
 │   ├── ingest_corpus.py
-│   ├── peek_corpus_chunks.py
-│   ├── smoke_bazi_agent.py
-│   ├── smoke_llm.py
-│   ├── smoke_test_extractor.py
-│   ├── stage5_acceptance.py
-│   └── test_reranker_smoke.py
+│   └── stage5_acceptance.py
 ├── src
 │   └── guanchen_v2
 │       ├── agents
@@ -81,6 +94,7 @@ GuanChen v2/
 │       ├── config
 │       │   └── settings.py
 │       ├── core
+│       │   ├── errors.py
 │       │   └── logging.py
 │       ├── dream
 │       │   ├── context.py
@@ -114,13 +128,20 @@ GuanChen v2/
 │       │   ├── eval_models.py
 │       │   ├── models.py
 │       │   └── rerank_adapter.py
+│       ├── liuyao
+│       │   ├── casting.py
+│       │   ├── exceptions.py
+│       │   ├── iching_adapter.py
+│       │   ├── policy.py
+│       │   └── state.py
 │       ├── llm
 │       │   ├── client.py
 │       │   ├── exceptions.py
 │       │   └── provider.py
 │       ├── models
 │       │   ├── bazi.py
-│       │   └── dream.py
+│       │   ├── dream.py
+│       │   └── liuyao.py
 │       ├── prompts
 │       │   ├── bazi_agent.py
 │       │   ├── dream_agent.py
@@ -153,7 +174,8 @@ GuanChen v2/
 │   │   ├── test_dream_merge.py
 │   │   ├── test_extractor.py
 │   │   ├── test_retrieval.py
-│   │   └── test_runtime.py
+│   │   ├── test_runtime.py
+│   │   └── test_strict_schemas.py
 │   ├── knowledge
 │   │   ├── ingestion
 │   │   │   ├── test_chunker.py
@@ -163,6 +185,7 @@ GuanChen v2/
 │   │   │   ├── test_parser.py
 │   │   │   └── test_stage4_corpus_smoke.py
 │   │   ├── persistence
+│   │   │   ├── test_database.py
 │   │   │   └── test_db_integration.py
 │   │   ├── retrieval
 │   │   │   ├── test_assembler.py
@@ -171,26 +194,27 @@ GuanChen v2/
 │   │   │   ├── test_reranker.py
 │   │   │   ├── test_rrf.py
 │   │   │   └── test_sparse_integration.py
+│   │   ├── conftest.py
 │   │   ├── test_embeddings.py
 │   │   ├── test_eval_metrics.py
 │   │   └── test_models.py
+│   ├── liuyao
+│   │   ├── test_casting.py
+│   │   └── test_policy.py
 │   ├── llm
 │   │   ├── test_client.py
 │   │   └── test_provider.py
 │   ├── models
-│   │   └── test_bazi_models.py
-│   └── __init__.py
+│   │   ├── test_bazi_models.py
+│   │   └── test_liuyao_models.py
+│   ├── __init__.py
+│   ├── test_error_message_safety.py
+│   └── test_exception_hierarchy.py
 ├── .env
 ├── .env.example
 ├── .gitignore
 ├── .python-version
-├── corpus_chunk_dict.txt
 ├── docker-compose.yml
-├── project_directory_tree.txt
-├── project_source_code.txt
 ├── pyproject.toml
 ├── README.md
-├── STAGE0_ARTIFACTS_INDEX.md
-├── uv.lock
-├── 项目规划.docx
-└── 项目规划.txt
+└── uv.lock
