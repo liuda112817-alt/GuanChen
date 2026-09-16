@@ -103,9 +103,7 @@ def test_male_female_difference(adapter):
 def test_birth_place_non_effect(adapter):
     """防御：验证出生地文本不参与运算，防止暗中接入真实经纬度修正。"""
     prof_none = BirthProfile(year=1990, month=1, day=1, hour=12, minute=0, gender=Gender.MALE)
-    prof_chengdu = BirthProfile(
-        year=1990, month=1, day=1, hour=12, minute=0, gender=Gender.MALE, birth_place_text="成都"
-    )
+    prof_chengdu = BirthProfile(year=1990, month=1, day=1, hour=12, minute=0, gender=Gender.MALE, birth_place_text="成都")
 
     chart_a = adapter.calculate(prof_none)
     chart_b = adapter.calculate(prof_chengdu)

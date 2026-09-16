@@ -14,9 +14,7 @@ from guanchen_v2.models.bazi import Gender
 
 def test_complete_input_ready_preserves_question():
     """Case 1: 资料齐全，不仅得到 BirthProfile，原问题也一字不落地保留并清洗。"""
-    inp = BaziAgentInput(
-        question="  测事业  ", year=1998, month=7, day=21, hour=14, minute=30, gender=Gender.MALE
-    )
+    inp = BaziAgentInput(question="  测事业  ", year=1998, month=7, day=21, hour=14, minute=30, gender=Gender.MALE)
     result = check_bazi_requirements(inp)
 
     assert isinstance(result, ReadyForBazi)

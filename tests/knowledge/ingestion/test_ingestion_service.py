@@ -80,14 +80,10 @@ async def test_idempotent_ingestion_success_happy_path():
     await service.ingest_document(doc)
 
     async with async_session() as session:
-        res_doc = await session.execute(
-            select(KnowledgeDocumentRow).where(KnowledgeDocumentRow.document_id == doc.document_id)
-        )
+        res_doc = await session.execute(select(KnowledgeDocumentRow).where(KnowledgeDocumentRow.document_id == doc.document_id))
         assert res_doc.scalar_one().text == "一段非常普通的初版测试文字，用于基础查验。"
 
-        res_chunks = await session.execute(
-            select(KnowledgeChunkRow).where(KnowledgeChunkRow.document_id == doc.document_id)
-        )
+        res_chunks = await session.execute(select(KnowledgeChunkRow).where(KnowledgeChunkRow.document_id == doc.document_id))
         saved_chunks = res_chunks.scalars().all()
         assert len(saved_chunks) == 1
         assert len(saved_chunks[0].embedding) == 512
@@ -177,22 +173,10 @@ async def test_idempotent_ingestion_rollback_on_partial_failure():
     # Phase C：探查战后现场（验证数据库原子性保障）
     async with async_session() as session:
         # Document 回退如初
-        saved_doc = (
-            await session.execute(
-                select(KnowledgeDocumentRow).where(KnowledgeDocumentRow.document_id == doc_v1.document_id)
-            )
-        ).scalar_one()
+        saved_doc = (await session.execute(select(KnowledgeDocumentRow).where(KnowledgeDocumentRow.document_id == doc_v1.document_id))).scalar_one()
         assert saved_doc.text == "绝不容篡改的正确初版。"
 
         # 那些在事务中曾被 DELETE 的 Chunk 又满血复活了！
-        saved_chunks = (
-            (
-                await session.execute(
-                    select(KnowledgeChunkRow).where(KnowledgeChunkRow.document_id == doc_v1.document_id)
-                )
-            )
-            .scalars()
-            .all()
-        )
+        saved_chunks = (await session.execute(select(KnowledgeChunkRow).where(KnowledgeChunkRow.document_id == doc_v1.document_id))).scalars().all()
         saved_chunk_ids = {c.chunk_id for c in saved_chunks}
         assert saved_chunk_ids == old_chunk_ids

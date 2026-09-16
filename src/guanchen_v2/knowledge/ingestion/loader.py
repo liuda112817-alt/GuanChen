@@ -43,10 +43,7 @@ class KnowledgeSourceLoader:
                 h1_title = stripped[2:].strip()
             else:
                 if stripped.startswith("# "):
-                    raise KnowledgeSourceLoadError(
-                        f"文件 {source_path} 中存在多个一级标题 (H1)。\n"
-                        "知识库限制单一文件仅对应单一核心古籍。"
-                    )
+                    raise KnowledgeSourceLoadError(f"文件 {source_path} 中存在多个一级标题 (H1)。\n知识库限制单一文件仅对应单一核心古籍。")
 
         if not h1_title:
             raise KnowledgeSourceLoadError(f"文件 {source_path} 缺失一级标题 (H1) 或标题内容为空。")
@@ -94,9 +91,7 @@ class KnowledgeSourceLoader:
                     continue
 
                 if child.name not in valid_domains:
-                    raise KnowledgeSourceLoadError(
-                        f"发现未知领域目录 '{child.name}'，\n如果这是拼写错误请修正，否则请移除该非法目录。"
-                    )
+                    raise KnowledgeSourceLoadError(f"发现未知领域目录 '{child.name}'，\n如果这是拼写错误请修正，否则请移除该非法目录。")
 
                 # 获取该领域目录下的一层 MD 文件
                 md_files = sorted(child.glob("*.md"))

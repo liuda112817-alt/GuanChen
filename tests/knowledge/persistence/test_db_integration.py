@@ -60,9 +60,7 @@ async def test_document_round_trip():
         await session.commit()
 
     async with async_session() as session:
-        result = await session.execute(
-            select(KnowledgeDocumentRow).where(KnowledgeDocumentRow.document_id == "doc_test_1")
-        )
+        result = await session.execute(select(KnowledgeDocumentRow).where(KnowledgeDocumentRow.document_id == "doc_test_1"))
 
         fetched = result.scalar_one_or_none()
 
@@ -126,9 +124,7 @@ async def test_chunk_embedding_round_trip_and_fk_lineage():
         await session.commit()
 
     async with async_session() as session:
-        result = await session.execute(
-            select(KnowledgeChunkRow).where(KnowledgeChunkRow.chunk_id == "chunk_test_1")
-        )
+        result = await session.execute(select(KnowledgeChunkRow).where(KnowledgeChunkRow.chunk_id == "chunk_test_1"))
 
         fetched_chunk = result.scalar_one()
 

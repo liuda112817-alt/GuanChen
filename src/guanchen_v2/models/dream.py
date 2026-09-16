@@ -83,15 +83,9 @@ class DreamCorrection(BaseModel):
 
 class DreamPatch(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    element_additions: DreamElements = Field(
-        default_factory=DreamElements, description="本轮新增的梦境要素，不包含当前上下文已存在的信息"
-    )
-    background_additions: RealityBackground = Field(
-        default_factory=RealityBackground, description="本轮新增的用户明确现实背景"
-    )
-    corrections: list[DreamCorrection] = Field(
-        default_factory=list, description="用户本轮明确提出的已有状态更正或删除"
-    )
+    element_additions: DreamElements = Field(default_factory=DreamElements, description="本轮新增的梦境要素，不包含当前上下文已存在的信息")
+    background_additions: RealityBackground = Field(default_factory=RealityBackground, description="本轮新增的用户明确现实背景")
+    corrections: list[DreamCorrection] = Field(default_factory=list, description="用户本轮明确提出的已有状态更正或删除")
 
 
 class DreamTurnBoundary(StrEnum):

@@ -99,9 +99,7 @@ class BgeEmbeddingAdapter:
                 "Unknown",
             )
 
-            raise KnowledgeEmbeddingError(
-                f"模型输出的形状异常，预期为 {expected_shape}，实际为 {actual_shape}。"
-            )
+            raise KnowledgeEmbeddingError(f"模型输出的形状异常，预期为 {expected_shape}，实际为 {actual_shape}。")
 
         try:
             return embeddings.tolist()

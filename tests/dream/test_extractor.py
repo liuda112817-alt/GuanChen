@@ -18,7 +18,9 @@ from guanchen_v2.llm.exceptions import (
     LLMStructuredOutputError,
 )
 from guanchen_v2.models.dream import (
+    DreamCorrection,
     DreamElements,
+    DreamField,
     DreamPatch,
 )
 from guanchen_v2.prompts.dream_agent import (
@@ -200,3 +202,33 @@ async def test_defensive_invalid_return_type_fails(
         match="未返回合法的 DreamPatch",
     ):
         await extractor.extract("我梦见一只猫")
+
+
+@pytest.mark.asyncio
+async def test_cascading_correction_intent(extractor, fake_llm_client):
+    """
+    回归测试：验证模型能否在一次 patch 中，
+    同时输出 people 和 actions 两个相关字段的 correction。
+    """
+    record = start_new_dream()
+    record.elements.people = ["妈妈"]
+    record.elements.actions = ["妈妈站在门边"]
+
+    # 模拟大模型听懂了 Prompt 规则，返回了级联修改的 Patch
+    fake_llm_client.ainvoke.return_value = DreamPatch(
+        corrections=[
+            DreamCorrection(field=DreamField.PEOPLE, old_value="妈妈", new_value="班主任"),
+            DreamCorrection(field=DreamField.ACTIONS, old_value="妈妈站在门边", new_value="班主任站在门边"),
+        ]
+    )
+
+    patch = await extractor.extract("不是妈妈，是以前的班主任", current_record=record)
+
+    # 确保合并逻辑 (merge_dream_record) 能正确处理这种多重更正
+    updated_record = merge_dream_record(record, patch)
+
+    assert "妈妈" not in updated_record.elements.people
+    assert "班主任" in updated_record.elements.people
+
+    assert "妈妈站在门边" not in updated_record.elements.actions
+    assert "班主任站在门边" in updated_record.elements.actions

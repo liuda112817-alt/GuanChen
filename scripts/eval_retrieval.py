@@ -285,9 +285,7 @@ async def check_preflight(
         - case_id -> ground-truth domain
     """
     if len(cases) < MIN_EVAL_CASES:
-        raise ValueError(
-            f"[BLOCKER] Retrieval Eval 至少需要 {MIN_EVAL_CASES} 条有效人工考题，当前只有 {len(cases)} 条。"
-        )
+        raise ValueError(f"[BLOCKER] Retrieval Eval 至少需要 {MIN_EVAL_CASES} 条有效人工考题，当前只有 {len(cases)} 条。")
 
     all_gt_ids = {chunk_id for case in cases for chunk_id in case.relevant_chunk_ids}
 
@@ -299,9 +297,7 @@ async def check_preflight(
     missing_ids = all_gt_ids - set(row_map)
 
     if missing_ids:
-        raise ValueError(
-            f"Preflight 失败：以下 Ground Truth anchor chunk 不存在于当前数据库：{sorted(missing_ids)}"
-        )
+        raise ValueError(f"Preflight 失败：以下 Ground Truth anchor chunk 不存在于当前数据库：{sorted(missing_ids)}")
 
     expected_source_sections: dict[
         str,
@@ -321,18 +317,12 @@ async def check_preflight(
                 row,
                 case.filters,
             ):
-                raise ValueError(
-                    f"Preflight 失败：case [{case.case_id}] 的 GT [{chunk_id}] 不满足自身 RetrievalFilter。"
-                )
+                raise ValueError(f"Preflight 失败：case [{case.case_id}] 的 GT [{chunk_id}] 不满足自身 RetrievalFilter。")
 
             try:
                 gt_domain = KnowledgeDomain(_enum_or_raw_value(row.domain))
             except ValueError as exc:
-                raise ValueError(
-                    "Preflight 失败："
-                    f"case [{case.case_id}] 的 GT [{chunk_id}] "
-                    f"包含未知 domain [{row.domain}]。"
-                ) from exc
+                raise ValueError(f"Preflight 失败：case [{case.case_id}] 的 GT [{chunk_id}] 包含未知 domain [{row.domain}]。") from exc
 
             gt_domains.add(gt_domain)
             case_expected.add(_row_source_section_key(row))
@@ -342,9 +332,7 @@ async def check_preflight(
 
         if len(gt_domains) != 1:
             raise ValueError(
-                "Preflight 失败："
-                f"case [{case.case_id}] 的 Ground Truth 跨越多个 domain："
-                f"{sorted(domain.value for domain in gt_domains)}"
+                f"Preflight 失败：case [{case.case_id}] 的 Ground Truth 跨越多个 domain：{sorted(domain.value for domain in gt_domains)}"
             )
 
         case_domain = next(iter(gt_domains))
@@ -364,15 +352,9 @@ async def check_preflight(
     if coverage_errors:
         raise ValueError("[BLOCKER] Retrieval Eval 多领域覆盖不足：" + ", ".join(coverage_errors))
 
-    coverage_text = ", ".join(
-        f"{domain.value}={coverage_counts[domain]}" for domain in REQUIRED_DOMAIN_CASE_COUNTS
-    )
+    coverage_text = ", ".join(f"{domain.value}={coverage_counts[domain]}" for domain in REQUIRED_DOMAIN_CASE_COUNTS)
 
-    print(
-        "✓ Preflight PASS："
-        f"{len(cases)} cases、GT lineage、metadata filters、"
-        "domain isolation、expected source/section 全部有效。"
-    )
+    print(f"✓ Preflight PASS：{len(cases)} cases、GT lineage、metadata filters、domain isolation、expected source/section 全部有效。")
     print(f"✓ Multi-domain coverage：{coverage_text}")
 
     return expected_source_sections, case_domains
@@ -414,11 +396,7 @@ def _serialize_filter(
 
     return {
         "domains": (sorted(domain.value for domain in filters.domains) if filters.domains else None),
-        "source_types": (
-            sorted(source_type.value for source_type in filters.source_types)
-            if filters.source_types
-            else None
-        ),
+        "source_types": (sorted(source_type.value for source_type in filters.source_types) if filters.source_types else None),
         "source_titles": (sorted(filters.source_titles) if filters.source_titles else None),
         "sections": (sorted(filters.sections) if filters.sections else None),
     }
@@ -908,9 +886,7 @@ async def run_evaluation(
                 "dense_top_10": [_hit_view(hit) for hit in dense_hits[:10]],
                 "sparse_top_10": [_hit_view(hit) for hit in sparse_hits[:10]],
                 "rrf_top_10": [_hit_view(hit) for hit in rrf_hits[:10]],
-                "reranked_top_10": (
-                    [_hit_view(hit) for hit in reranked_hits[:10]] if reranked_hits is not None else None
-                ),
+                "reranked_top_10": ([_hit_view(hit) for hit in reranked_hits[:10]] if reranked_hits is not None else None),
             }
 
             with FAILURE_REPORT_FILE.open(
@@ -1120,9 +1096,7 @@ async def run_evaluation(
     print("=" * 60)
 
     recall_pass = report.rrf.recall_at_5 >= OVERALL_RRF_RECALL_GATE
-    domain_recall_pass = all(
-        metrics["rrf"]["recall_at_5"] >= DOMAIN_RRF_RECALL_GATE for metrics in domain_metrics.values()
-    )
+    domain_recall_pass = all(metrics["rrf"]["recall_at_5"] >= DOMAIN_RRF_RECALL_GATE for metrics in domain_metrics.values())
 
     print("Official relevance unit: source_title + section")
 
@@ -1158,26 +1132,13 @@ async def run_evaluation(
     print("Diagnostic: Exact Chunk Metrics")
     print("=" * 60)
 
-    print(
-        "Dense  exact Recall@5="
-        f"{report.dense_exact_chunk_diagnostic.recall_at_5:.4f}  "
-        "MRR@10="
-        f"{report.dense_exact_chunk_diagnostic.mrr_at_10:.4f}"
-    )
+    print(f"Dense  exact Recall@5={report.dense_exact_chunk_diagnostic.recall_at_5:.4f}  MRR@10={report.dense_exact_chunk_diagnostic.mrr_at_10:.4f}")
 
     print(
-        "Sparse exact Recall@5="
-        f"{report.sparse_exact_chunk_diagnostic.recall_at_5:.4f}  "
-        "MRR@10="
-        f"{report.sparse_exact_chunk_diagnostic.mrr_at_10:.4f}"
+        f"Sparse exact Recall@5={report.sparse_exact_chunk_diagnostic.recall_at_5:.4f}  MRR@10={report.sparse_exact_chunk_diagnostic.mrr_at_10:.4f}"
     )
 
-    print(
-        "RRF    exact Recall@5="
-        f"{report.rrf_exact_chunk_diagnostic.recall_at_5:.4f}  "
-        "MRR@10="
-        f"{report.rrf_exact_chunk_diagnostic.mrr_at_10:.4f}"
-    )
+    print(f"RRF    exact Recall@5={report.rrf_exact_chunk_diagnostic.recall_at_5:.4f}  MRR@10={report.rrf_exact_chunk_diagnostic.mrr_at_10:.4f}")
 
     print("\n注意：Exact Chunk Metrics 仅用于诊断，不参与 Stage 4 PASS/FAIL。")
 

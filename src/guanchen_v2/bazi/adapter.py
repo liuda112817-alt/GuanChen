@@ -60,9 +60,7 @@ class LunarPythonBaziAdapter:
 
     def calculate(self, profile: BirthProfile) -> BaziChart:
         try:
-            solar = Solar.fromYmdHms(
-                profile.year, profile.month, profile.day, profile.hour, profile.minute, 0
-            )
+            solar = Solar.fromYmdHms(profile.year, profile.month, profile.day, profile.hour, profile.minute, 0)
             lunar = solar.getLunar()
             eight_char = lunar.getEightChar()
 

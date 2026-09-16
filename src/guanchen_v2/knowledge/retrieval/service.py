@@ -38,9 +38,7 @@ class RetrievalService:
         if candidate_limit <= 0 or result_limit <= 0:
             raise KnowledgeRetrievalError("候选项数量与结果数量必须大于 0。")
         if candidate_limit < result_limit:
-            raise KnowledgeRetrievalError(
-                "海选数量 (candidate_limit) 必须大于等于最终结果数量 (result_limit)。"
-            )
+            raise KnowledgeRetrievalError("海选数量 (candidate_limit) 必须大于等于最终结果数量 (result_limit)。")
 
         self._candidate_limit = candidate_limit
         self._result_limit = result_limit

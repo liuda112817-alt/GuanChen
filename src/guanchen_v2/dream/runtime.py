@@ -126,11 +126,7 @@ def _format_evidence(
         start=1,
     ):
         formatted.append(
-            f"[Evidence {index}]\n"
-            f"chunk_id: {result.chunk_id}\n"
-            f"source_title: {result.source_title}\n"
-            f"section: {result.section}\n"
-            f"text: {result.text}\n"
+            f"[Evidence {index}]\nchunk_id: {result.chunk_id}\nsource_title: {result.source_title}\nsection: {result.section}\ntext: {result.text}\n"
         )
 
     return "\n".join(formatted)
@@ -255,9 +251,7 @@ class DreamAgentRuntime:
             used_chunk_ids=draft.used_chunk_ids,
         )
 
-        fallback_traditional_view = (
-            "当前共享知识库没有检索到足够可追溯的传统资料，因此本轮暂不作具体的传统象征判断。"
-        )
+        fallback_traditional_view = "当前共享知识库没有检索到足够可追溯的传统资料，因此本轮暂不作具体的传统象征判断。"
 
         # 8. traditional_view 必须与真实 evidence lineage 对齐
         if draft.traditional_view is None or not used_results:

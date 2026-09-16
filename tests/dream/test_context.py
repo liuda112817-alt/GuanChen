@@ -40,18 +40,14 @@ def test_explicit_same_dream_negation_does_not_reset():
 async def test_3_consecutive_turns_same_dream(context_service, mock_extractor):
     """连续 3 轮梦境补充（场景 -> 现实背景 -> 修正人物），不丢旧字段"""
     # 轮次 1：初始梦境
-    mock_extractor.extract.return_value = DreamPatch(
-        element_additions=DreamElements(scenes=["旧学校", "走廊"])
-    )
+    mock_extractor.extract.return_value = DreamPatch(element_additions=DreamElements(scenes=["旧学校", "走廊"]))
     res1 = await context_service.apply_turn("我梦见在学校走廊", None)
 
     assert res1.status == DreamContextStatus.UPDATED
     assert "旧学校" in res1.record.elements.scenes
 
     # 轮次 2：补充现实压力（注意这里不会触发 raw_description 的追加）
-    mock_extractor.extract.return_value = DreamPatch(
-        background_additions=RealityBackground(stressors=["考试"])
-    )
+    mock_extractor.extract.return_value = DreamPatch(background_additions=RealityBackground(stressors=["考试"]))
     res2 = await context_service.apply_turn("最近考试压力大", res1.record)
 
     assert res2.status == DreamContextStatus.UPDATED
@@ -60,9 +56,7 @@ async def test_3_consecutive_turns_same_dream(context_service, mock_extractor):
     assert len(res2.record.raw_descriptions) == 1
 
     # 轮次 3：错误修正
-    mock_extractor.extract.return_value = DreamPatch(
-        corrections=[DreamCorrection(field=DreamField.SCENES, old_value="旧学校", new_value="小学")]
-    )
+    mock_extractor.extract.return_value = DreamPatch(corrections=[DreamCorrection(field=DreamField.SCENES, old_value="旧学校", new_value="小学")])
     res3 = await context_service.apply_turn("不是旧学校，是小学", res2.record)
 
     assert res3.status == DreamContextStatus.UPDATED
@@ -122,9 +116,7 @@ async def test_ambiguous_dream_boundary_clarification(context_service):
 async def test_merge_conflict_clarification(context_service, mock_extractor):
     """明确修正但目标缺失时，转为澄清追问，绝不污染原状态"""
     old_record = start_new_dream()
-    mock_extractor.extract.return_value = DreamPatch(
-        corrections=[DreamCorrection(field=DreamField.PEOPLE, old_value="妈妈", new_value="同事")]
-    )
+    mock_extractor.extract.return_value = DreamPatch(corrections=[DreamCorrection(field=DreamField.PEOPLE, old_value="妈妈", new_value="同事")])
 
     res = await context_service.apply_turn("不是妈妈，是同事", old_record)
 
@@ -136,9 +128,7 @@ async def test_merge_conflict_clarification(context_service, mock_extractor):
 @pytest.mark.asyncio
 async def test_no_dream_content_clarification(context_service, mock_extractor):
     """仅包含现实压力，完全没有梦境实体时，触发补充追问"""
-    mock_extractor.extract.return_value = DreamPatch(
-        background_additions=RealityBackground(stressors=["加班"])
-    )
+    mock_extractor.extract.return_value = DreamPatch(background_additions=RealityBackground(stressors=["加班"]))
 
     res = await context_service.apply_turn("最近疯狂加班", None)
 

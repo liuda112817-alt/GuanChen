@@ -59,15 +59,10 @@ def test_corpus_v1_smoke_pipeline():
         assert chunk.section, "section 不能为空"
         assert chunk.text, "text 不能为空"
 
-        assert chunk.document_id in seen_doc_ids, (
-            f"血缘断裂！找到未知来源的 chunk，关联 document_id: {chunk.document_id}"
-        )
+        assert chunk.document_id in seen_doc_ids, f"血缘断裂！找到未知来源的 chunk，关联 document_id: {chunk.document_id}"
 
         assert chunk.chunk_id not in seen_chunk_ids, f"发生 chunk_id 全局碰撞 (重复数据块): {chunk.chunk_id}"
         seen_chunk_ids.add(chunk.chunk_id)
 
     # 作为本地观察用途打印统计，但不阻断流程
-    print(
-        f"\n[Smoke Test Success] 统计: 产生 {len(total_documents)} 份 Documents, "
-        f"拆分为 {len(all_chunks)} 份 Chunks."
-    )
+    print(f"\n[Smoke Test Success] 统计: 产生 {len(total_documents)} 份 Documents, 拆分为 {len(all_chunks)} 份 Chunks.")

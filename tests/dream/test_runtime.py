@@ -163,14 +163,10 @@ class BaziAgentRuntime:
         # ---------------------------------------------------------
 
         if calc_bazi_count != 1:
-            raise BaziAgentInvariantError(
-                f"calculate_bazi tool 必须只调用 1 次，实际调用 {calc_bazi_count} 次"
-            )
+            raise BaziAgentInvariantError(f"calculate_bazi tool 必须只调用 1 次，实际调用 {calc_bazi_count} 次")
 
         if retrieve_count > 1:
-            raise BaziAgentInvariantError(
-                f"retrieve_bazi_knowledge tool 最多只能调用 1 次，实际调用 {retrieve_count} 次"
-            )
+            raise BaziAgentInvariantError(f"retrieve_bazi_knowledge tool 最多只能调用 1 次，实际调用 {retrieve_count} 次")
 
         if not isinstance(
             bazi_chart_artifact,

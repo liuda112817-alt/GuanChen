@@ -55,9 +55,7 @@ def test_knowledge_chunk_from_document_part_happy_path():
     assert chunk.text == "天干者，甲乙丙丁也。"
 
     # ID 仍由底层的 canonicalize 计算得出，不受外层空格影响
-    expected_id = generate_deterministic_chunk_id(
-        "yuanhai_ziping__juan_01", "卷一", "天干者，甲乙丙丁也。   \n\n  "
-    )
+    expected_id = generate_deterministic_chunk_id("yuanhai_ziping__juan_01", "卷一", "天干者，甲乙丙丁也。   \n\n  ")
     assert chunk.chunk_id == expected_id
 
 

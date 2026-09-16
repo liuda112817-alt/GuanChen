@@ -38,9 +38,7 @@ def test_valid_birth_profile():
 
 
 def test_birth_profile_empty_place():
-    profile = BirthProfile(
-        year=2024, month=1, day=1, hour=12, minute=0, gender=Gender.MALE, birth_place_text="   "
-    )
+    profile = BirthProfile(year=2024, month=1, day=1, hour=12, minute=0, gender=Gender.MALE, birth_place_text="   ")
     assert profile.birth_place_text is None  # 空白字符串转为 None
 
 

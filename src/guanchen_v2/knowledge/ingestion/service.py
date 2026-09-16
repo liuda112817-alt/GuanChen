@@ -78,9 +78,7 @@ class KnowledgeIngestionService:
             "text": document.text,
         }
 
-        document_update_values = {
-            key: value for key, value in document_values.items() if key != "document_id"
-        }
+        document_update_values = {key: value for key, value in document_values.items() if key != "document_id"}
 
         chunk_rows: list[KnowledgeChunkRow] = []
 
@@ -120,9 +118,7 @@ class KnowledgeIngestionService:
 
                     await session.execute(upsert_statement)
 
-                    delete_statement = delete(KnowledgeChunkRow).where(
-                        KnowledgeChunkRow.document_id == document.document_id
-                    )
+                    delete_statement = delete(KnowledgeChunkRow).where(KnowledgeChunkRow.document_id == document.document_id)
 
                     await session.execute(delete_statement)
 

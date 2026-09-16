@@ -47,9 +47,7 @@ async def test_multi_turn_completion_and_question_preservation(mock_runtime):
 
 
 async def test_field_override_correction(mock_runtime):
-    session = BaziTaskSession(
-        BaziAgentInput(question="事业", year=1998, month=7, day=21, hour=13), mock_runtime
-    )
+    session = BaziTaskSession(BaziAgentInput(question="事业", year=1998, month=7, day=21, hour=13), mock_runtime)
     await session.supplement(BaziBirthDataPatch(hour=14, minute=30, gender=Gender.MALE))
     assert mock_runtime.run.call_args.args[0].profile.hour == 14
 

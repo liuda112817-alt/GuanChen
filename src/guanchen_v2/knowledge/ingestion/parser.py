@@ -36,9 +36,7 @@ class MarkdownKnowledgeParser:
                 section_name = " / ".join(path_components)
 
             if section_name in seen_sections:
-                raise KnowledgeStructureParseError(
-                    f"在文件 {source.source_path} 中发现重复的 section 路径: {section_name}"
-                )
+                raise KnowledgeStructureParseError(f"在文件 {source.source_path} 中发现重复的 section 路径: {section_name}")
             seen_sections.add(section_name)
 
             doc = KnowledgeDocument.from_parser(
@@ -82,8 +80,7 @@ class MarkdownKnowledgeParser:
                     # 防御跳级 (例如从 H2 直接跳跃到 H4)
                     if current_max_level > 0 and level > current_max_level + 1:
                         raise KnowledgeStructureParseError(
-                            f"在文件 {source.source_path} 中发现结构跳级:"
-                            f"试图从 H{current_max_level} 直接跳跃到 H{level}"
+                            f"在文件 {source.source_path} 中发现结构跳级:试图从 H{current_max_level} 直接跳跃到 H{level}"
                         )
 
                     # 维护上下文堆栈，弹出所有层级 >= 当前级别的同辈和晚辈标题

@@ -28,9 +28,7 @@ class BgeRerankerAdapter:
             self._model = CrossEncoder(self.MODEL_NAME, default_activation_function=nn.Identity())
             return self._model
         except Exception as exc:
-            raise KnowledgeRerankerError(
-                f"无法加载重排模型 {self.MODEL_NAME}。请检查网络或本地缓存。"
-            ) from exc
+            raise KnowledgeRerankerError(f"无法加载重排模型 {self.MODEL_NAME}。请检查网络或本地缓存。") from exc
 
     def score_pairs(self, pairs: list[tuple[str, str]]) -> list[float]:
         """

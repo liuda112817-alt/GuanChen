@@ -28,9 +28,7 @@ class ReciprocalRankFusion:
             or hit_a.section != hit_b.section
             or hit_a.text != hit_b.text
         ):
-            raise KnowledgeRetrievalError(
-                f"RRF 数据校验崩溃：来自两路的 chunk_id [{hit_a.chunk_id}] 元数据出现脏乱分歧！"
-            )
+            raise KnowledgeRetrievalError(f"RRF 数据校验崩溃：来自两路的 chunk_id [{hit_a.chunk_id}] 元数据出现脏乱分歧！")
 
     def fuse(
         self,
@@ -51,9 +49,7 @@ class ReciprocalRankFusion:
         # -----------------------------------------------
         for rank, hit in enumerate(dense_hits, start=1):
             if hit.chunk_id in fusion_map:
-                raise KnowledgeRetrievalError(
-                    f"RRF 数据校验崩溃：Dense 内出现了重复提交的 chunk_id [{hit.chunk_id}]。"
-                )
+                raise KnowledgeRetrievalError(f"RRF 数据校验崩溃：Dense 内出现了重复提交的 chunk_id [{hit.chunk_id}]。")
 
             fusion_map[hit.chunk_id] = {
                 "base_obj": hit,
@@ -70,9 +66,7 @@ class ReciprocalRankFusion:
 
             if record:
                 if record["sparse_rank"] is not None:
-                    raise KnowledgeRetrievalError(
-                        f"RRF 数据校验崩溃：Sparse 内出现了重复交卷的 chunk_id [{hit.chunk_id}]。"
-                    )
+                    raise KnowledgeRetrievalError(f"RRF 数据校验崩溃：Sparse 内出现了重复交卷的 chunk_id [{hit.chunk_id}]。")
 
                 self._verify_metadata_consistency(record["base_obj"], hit)
                 record["sparse_rank"] = rank

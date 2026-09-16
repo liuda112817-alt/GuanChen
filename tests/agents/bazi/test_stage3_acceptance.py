@@ -23,9 +23,7 @@ def mock_runtime():
 
 
 async def test_A01_complete_data_ready_for_bazi(mock_runtime):
-    initial = BaziAgentInput(
-        question="分析事业", year=1998, month=7, day=21, hour=14, minute=30, gender=Gender.MALE
-    )
+    initial = BaziAgentInput(question="分析事业", year=1998, month=7, day=21, hour=14, minute=30, gender=Gender.MALE)
     session = BaziTaskSession(initial, mock_runtime)
     result = await session.evaluate()
     assert isinstance(result, BaziAgentResult)

@@ -45,9 +45,7 @@ async def run_smoke_test():
         # 2. 合并 State
         record = merge_dream_record(record=record, patch=patch, raw_description_fragment=case["text"])
 
-        console.print(
-            "\n[bold yellow]>>> Merge 后的当前有效状态 (Dream Elements & Background):[/bold yellow]"
-        )
+        console.print("\n[bold yellow]>>> Merge 后的当前有效状态 (Dream Elements & Background):[/bold yellow]")
         state_dump = {
             "elements": record.elements.model_dump(exclude_defaults=True),
             "reality_background": record.reality_background.model_dump(exclude_defaults=True),

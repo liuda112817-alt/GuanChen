@@ -111,9 +111,7 @@ class SparseRetriever:
             return False
         return True
 
-    def search(
-        self, query: str, limit: int, filters: Optional[RetrievalFilter] = None
-    ) -> list[SparseSearchHit]:
+    def search(self, query: str, limit: int, filters: Optional[RetrievalFilter] = None) -> list[SparseSearchHit]:
         """
         在当前内存快照中进行词汇搜索。
         """

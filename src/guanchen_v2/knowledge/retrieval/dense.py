@@ -77,16 +77,10 @@ class DenseRetriever:
 
                 if filters:
                     if filters.domains:
-                        stmt = stmt.where(
-                            KnowledgeChunkRow.domain.in_(sorted(domain.value for domain in filters.domains))
-                        )
+                        stmt = stmt.where(KnowledgeChunkRow.domain.in_(sorted(domain.value for domain in filters.domains)))
 
                     if filters.source_types:
-                        stmt = stmt.where(
-                            KnowledgeChunkRow.source_type.in_(
-                                sorted(source_type.value for source_type in filters.source_types)
-                            )
-                        )
+                        stmt = stmt.where(KnowledgeChunkRow.source_type.in_(sorted(source_type.value for source_type in filters.source_types)))
 
                     if filters.source_titles:
                         stmt = stmt.where(KnowledgeChunkRow.source_title.in_(sorted(filters.source_titles)))

@@ -13,15 +13,11 @@ class RetrievalResultAssembler:
     3. 严厉打击重复的 chunk_id，守护物证溯源的唯一性。
     """
 
-    def _ensure_no_duplicates(
-        self, hits: Sequence[RrfSearchHit] | Sequence[RerankedSearchHit], source_name: str
-    ) -> None:
+    def _ensure_no_duplicates(self, hits: Sequence[RrfSearchHit] | Sequence[RerankedSearchHit], source_name: str) -> None:
         seen = set()
         for hit in hits:
             if hit.chunk_id in seen:
-                raise KnowledgeRetrievalError(
-                    f"最终检索组装崩溃：在 {source_name} 的结果中发现了重复的 chunk_id [{hit.chunk_id}]。"
-                )
+                raise KnowledgeRetrievalError(f"最终检索组装崩溃：在 {source_name} 的结果中发现了重复的 chunk_id [{hit.chunk_id}]。")
             seen.add(hit.chunk_id)
 
     def from_rrf(self, hits: Sequence[RrfSearchHit]) -> list[RetrievalResult]:
