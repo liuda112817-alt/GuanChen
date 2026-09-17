@@ -131,9 +131,12 @@ GuanChen v2/
 │       ├── liuyao
 │       │   ├── casting.py
 │       │   ├── exceptions.py
+│       │   ├── formatter.py
 │       │   ├── iching_adapter.py
 │       │   ├── policy.py
-│       │   └── state.py
+│       │   ├── retrieval.py
+│       │   ├── state.py
+│       │   └── workflow.py
 │       ├── llm
 │       │   ├── client.py
 │       │   ├── exceptions.py
@@ -145,7 +148,21 @@ GuanChen v2/
 │       ├── prompts
 │       │   ├── bazi_agent.py
 │       │   ├── dream_agent.py
+│       │   ├── liuyao_agent.py
+│       │   ├── router.py
 │       │   └── smoke.py
+│       ├── router
+│       │   ├── adapters
+│       │   │   ├── bazi.py
+│       │   │   ├── dream.py
+│       │   │   ├── knowledge.py
+│       │   │   └── liuyao.py
+│       │   ├── __init__.py
+│       │   ├── contracts.py
+│       │   ├── core.py
+│       │   ├── dispatch.py
+│       │   ├── errors.py
+│       │   └── requirements.py
 │       ├── tools
 │       │   ├── bazi.py
 │       │   └── bazi_retrieval.py
@@ -200,13 +217,23 @@ GuanChen v2/
 │   │   └── test_models.py
 │   ├── liuyao
 │   │   ├── test_casting.py
-│   │   └── test_policy.py
+│   │   ├── test_policy.py
+│   │   ├── test_retrieval.py
+│   │   ├── test_runtime_integration.py
+│   │   ├── test_stage6_acceptance.py
+│   │   └── test_workflow.py
 │   ├── llm
 │   │   ├── test_client.py
 │   │   └── test_provider.py
 │   ├── models
 │   │   ├── test_bazi_models.py
 │   │   └── test_liuyao_models.py
+│   ├── router
+│   │   ├── test_adapters.py
+│   │   ├── test_contracts.py
+│   │   ├── test_core.py
+│   │   ├── test_dispatch.py
+│   │   └── test_requirements.py
 │   ├── __init__.py
 │   ├── test_error_message_safety.py
 │   └── test_exception_hierarchy.py
