@@ -1,5 +1,7 @@
+from datetime import datetime, timezone
 from enum import IntEnum, StrEnum
 from typing import Annotated, Literal
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
@@ -167,3 +169,39 @@ class DecisionReflection(BaseModel):
         min_length=1,
     )
     uncertainty_note: NonBlankText = Field(description="免责与边界声明，明确表示该推演仅作文化参考，不能用于确定性预测")
+
+
+class DecisionRecord(BaseModel):
+    """
+    六爻决策域的持久化领域记录（Stage 8）。
+
+    只保存用户明确提供 / 确认的问题与确定性 / 结构化产物，
+    不保存任何自动抽取的隐式画像。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    record_id: UUID = Field(default_factory=uuid4)
+
+    question: DecisionQuestion = Field(description="澄清 / 确认后的决策问题")
+
+    thread_id: str = Field(
+        min_length=1,
+        description="关联的 LangGraph 持久线程 ID，用于跨进程恢复 HITL 流程",
+    )
+
+    status: DecisionQuestionStatus = DecisionQuestionStatus.DRAFT
+
+    hexagram: HexagramResult | None = None
+
+    reflection: DecisionReflection | None = None
+
+    final_response: str | None = None
+
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+    )

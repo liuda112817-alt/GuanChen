@@ -41,7 +41,7 @@ class BaziAgentRuntime:
     def __init__(
         self,
         settings: Settings,
-        retrieval_service: RetrievalService,
+        retrieval_service: RetrievalService | None = None,
     ) -> None:
         self._model = build_chat_model(settings=settings)
 
@@ -49,31 +49,38 @@ class BaziAgentRuntime:
 
         self._bazi_tool = build_calculate_bazi_tool(self._service)
 
-        self._retrieve_tool = build_retrieve_bazi_knowledge_tool(retrieval_service)
+        tools: list = [self._bazi_tool]
+        middleware: list = [
+            ModelCallLimitMiddleware(
+                run_limit=3,
+                exit_behavior="error",
+            ),
+            ToolCallLimitMiddleware(
+                tool_name="calculate_bazi",
+                run_limit=1,
+                exit_behavior="error",
+            ),
+        ]
+
+        # Stage 3 定位：暂不接 RAG。当外部注入 RetrievalService 后，
+        # 才绑定检索工具（Stage 4 扩展），否则 Agent 只做排盘 + 解释。
+        self._retrieve_tool = None
+        if retrieval_service is not None:
+            self._retrieve_tool = build_retrieve_bazi_knowledge_tool(retrieval_service)
+            tools.append(self._retrieve_tool)
+            middleware.append(
+                ToolCallLimitMiddleware(
+                    tool_name="retrieve_bazi_knowledge",
+                    run_limit=1,
+                    exit_behavior="error",
+                )
+            )
 
         self._agent = create_agent(
             model=self._model,
-            tools=[
-                self._bazi_tool,
-                self._retrieve_tool,
-            ],
+            tools=tools,
             system_prompt=BAZI_AGENT_SYSTEM_PROMPT,
-            middleware=[
-                ModelCallLimitMiddleware(
-                    run_limit=3,
-                    exit_behavior="error",
-                ),
-                ToolCallLimitMiddleware(
-                    tool_name="calculate_bazi",
-                    run_limit=1,
-                    exit_behavior="error",
-                ),
-                ToolCallLimitMiddleware(
-                    tool_name=("retrieve_bazi_knowledge"),
-                    run_limit=1,
-                    exit_behavior="error",
-                ),
-            ],
+            middleware=middleware,
             response_format=ToolStrategy(
                 BaziInterpretation,
                 handle_errors=False,
@@ -165,8 +172,11 @@ class BaziAgentRuntime:
         if calc_bazi_count != 1:
             raise BaziAgentInvariantError(f"calculate_bazi tool 必须只调用 1 次，实际调用 {calc_bazi_count} 次")
 
-        if retrieve_count > 1:
+        if self._retrieve_tool is not None and retrieve_count > 1:
             raise BaziAgentInvariantError(f"retrieve_bazi_knowledge tool 最多只能调用 1 次，实际调用 {retrieve_count} 次")
+
+        if self._retrieve_tool is None and retrieve_count != 0:
+            raise BaziAgentInvariantError("未绑定检索工具时不允许出现 retrieve_bazi_knowledge 调用")
 
         if not isinstance(
             bazi_chart_artifact,

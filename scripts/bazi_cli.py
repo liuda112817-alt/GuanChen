@@ -1,3 +1,5 @@
+import asyncio
+
 from pydantic import ValidationError
 
 from guanchen_v2.agents.bazi.exceptions import BaziAgentError
@@ -23,7 +25,7 @@ FIELD_PROMPTS = {
 }
 
 
-def run_cli():
+async def run_cli():
     print("========================================")
     print("        GuanChen Bazi CLI")
     print("========================================")
@@ -40,7 +42,7 @@ def run_cli():
     runtime = BaziAgentRuntime(settings=settings)
     session = BaziTaskSession(initial_input=initial_input, runtime=runtime)
 
-    result = session.evaluate()
+    result = await session.evaluate()
 
     while True:
         if isinstance(result, BaziAgentResult):
@@ -63,7 +65,7 @@ def run_cli():
 
             try:
                 patch = BaziBirthDataPatch(**patch_kwargs)
-                result = session.supplement(patch=patch)
+                result = await session.supplement(patch=patch)
             except ValidationError:
                 print("字段输入校验失败，请检查并重新输入")
                 continue
@@ -81,7 +83,7 @@ def run_cli():
 
             try:
                 patch = BaziBirthDataPatch(**patch_kwargs)
-                result = session.supplement(patch=patch)
+                result = await session.supplement(patch=patch)
             except ValidationError:
                 print("字段输入校验失败")
                 continue
@@ -89,7 +91,7 @@ def run_cli():
 
 if __name__ == "__main__":
     try:
-        run_cli()
+        asyncio.run(run_cli())
     except KeyboardInterrupt:
         print("\n\n 会话已终止。")
     except BaziAgentError:

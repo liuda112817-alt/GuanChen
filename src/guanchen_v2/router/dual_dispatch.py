@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Any, Mapping
 
 from guanchen_v2.router.contracts import IntentType, RoutingResult
 from guanchen_v2.router.dispatch import AgentAdapter
@@ -10,14 +10,14 @@ from guanchen_v2.router.requirements import RequirementContext
 @dataclass(frozen=True)
 class AgentExecutionResult:
     """
-    统一的 Agent 执行结果信封。
-    保留原始输出对象（无论是 dict, 文本，还是 LiuyaoInvocationResult），
-    解耦 Synthesizer 对底层 Agent 签名的直接依赖。
+    Router 层统一 Agent 执行结果。
+
+    Router 不解析领域 Agent 内部结构。
     """
 
     intent: IntentType
-    output: object
 
+    output: object
 
 class DualDomainDispatcher:
     def __init__(self, registry: Mapping[IntentType, AgentAdapter]):
@@ -33,32 +33,39 @@ class DualDomainDispatcher:
         routing: RoutingResult,
         query: str,
         context: RequirementContext,
+        primary_agent_state: dict[str, Any] | None = None,
+        secondary_agent_state: dict[str, Any] | None = None,
     ) -> tuple[AgentExecutionResult, ...]:
-        """
-        双领域安全分发：绝对串行执行，保留六爻 HITL 的时序安全。
-        """
-        # 1. 严格防御：只接受正好 1 个 secondary intent 的双领域路由
         if len(routing.secondary_intents) != 1:
             raise RouterDispatchError(f"DualDomainDispatcher 仅接受双领域请求，当前 secondary 数量: {len(routing.secondary_intents)}")
 
         primary_intent = routing.primary_intent
         secondary_intent = routing.secondary_intents[0]
 
-        # 2. 严格防御：检查注册表完整性
         primary_adapter = self._registry.get(primary_intent)
         secondary_adapter = self._registry.get(secondary_intent)
 
-        if primary_adapter is None:
-            raise RouterDispatchError(f"缺少处理 {primary_intent.value} 的 AgentAdapter")
-        if secondary_adapter is None:
-            raise RouterDispatchError(f"缺少处理 {secondary_intent.value} 的 AgentAdapter")
+        if primary_adapter is None or secondary_adapter is None:
+            missing = (
+                primary_intent.value
+                if primary_adapter is None
+                else secondary_intent.value
+            )
+            raise RouterDispatchError(f"缺少处理 {missing} 的 AgentAdapter")
 
-        # 3. 严格串行执行 (禁止 asyncio.gather，避免中断型 Agent 的状态竞态)
-        primary_output = await primary_adapter.invoke(query, context)
-        secondary_output = await secondary_adapter.invoke(query, context)
+        # 严格串行执行；仅在显式提供 Agent State 时透传（保持协议默认参数语义）
+        if primary_agent_state is None:
+            primary_output = await primary_adapter.invoke(query, context)
+        else:
+            primary_output = await primary_adapter.invoke(query, context, primary_agent_state)
 
-        # 4. 组装契约返回
+        if secondary_agent_state is None:
+            secondary_output = await secondary_adapter.invoke(query, context)
+        else:
+            secondary_output = await secondary_adapter.invoke(query, context, secondary_agent_state)
+
         return (
             AgentExecutionResult(intent=primary_intent, output=primary_output),
             AgentExecutionResult(intent=secondary_intent, output=secondary_output),
         )
+

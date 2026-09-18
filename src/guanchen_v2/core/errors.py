@@ -13,3 +13,19 @@ class ProjectError(RuntimeError):
     """
 
     pass
+
+class SessionStateError(ProjectError):
+    """
+    Application Session State 异常。
+    
+    处理：
+    - invalid state
+    - serialization failure
+    - validation failure
+    
+    不归属：
+    - AgentError
+    - DatabaseError
+    """
+    pass
+

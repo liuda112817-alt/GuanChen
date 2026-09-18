@@ -1,0 +1,116 @@
+{
+  "frozen_contract": "Stage 7 Router Eval",
+  "accuracy_gate": 0.92,
+  "mode": "rules_only",
+  "total": 65,
+  "correct": 56,
+  "accuracy": 1.0,
+  "per_intent": {
+    "bazi": {
+      "total": 19,
+      "correct": 15,
+      "rule_hit": 15,
+      "llm_fallback": 4
+    },
+    "dream": {
+      "total": 13,
+      "correct": 12,
+      "rule_hit": 12,
+      "llm_fallback": 1
+    },
+    "liuyao": {
+      "total": 11,
+      "correct": 9,
+      "rule_hit": 9,
+      "llm_fallback": 2
+    },
+    "knowledge": {
+      "total": 10,
+      "correct": 8,
+      "rule_hit": 8,
+      "llm_fallback": 2
+    },
+    "chitchat": {
+      "total": 6,
+      "correct": 6,
+      "rule_hit": 6,
+      "llm_fallback": 0
+    },
+    "out_of_scope": {
+      "total": 6,
+      "correct": 6,
+      "rule_hit": 6,
+      "llm_fallback": 0
+    }
+  },
+  "checks": {
+    "golden_size_ok": true,
+    "dual_or_ambiguous_ok": true,
+    "rule_layer_accuracy_ok": true,
+    "no_birth_profile_violation": true
+  },
+  "passed": true,
+  "birth_profile_check": {
+    "checked": true,
+    "violations": []
+  },
+  "rule_covered": 56,
+  "llm_fallback_needed": 9,
+  "llm_fallback_list": [
+    {
+      "id": "ambiguous_01",
+      "query": "我昨晚做噩梦了，睡得很差",
+      "expected_primary": "dream",
+      "expected_secondary": []
+    },
+    {
+      "id": "ambiguous_04",
+      "query": "我总觉得最近运气不好，帮我看看",
+      "expected_primary": "bazi",
+      "expected_secondary": []
+    },
+    {
+      "id": "ambiguous_05",
+      "query": "最近在纠结要不要跳槽，想听听建议",
+      "expected_primary": "liuyao",
+      "expected_secondary": []
+    },
+    {
+      "id": "ambiguous_06",
+      "query": "我和对象总是吵架，该不该继续",
+      "expected_primary": "liuyao",
+      "expected_secondary": []
+    },
+    {
+      "id": "ambiguous_07",
+      "query": "五行缺金的人要注意什么",
+      "expected_primary": "knowledge",
+      "expected_secondary": []
+    },
+    {
+      "id": "ambiguous_09",
+      "query": "这个月适合做重要决定吗",
+      "expected_primary": "bazi",
+      "expected_secondary": []
+    },
+    {
+      "id": "ambiguous_11",
+      "query": "帮我看看这段时间的运势变化",
+      "expected_primary": "bazi",
+      "expected_secondary": []
+    },
+    {
+      "id": "ambiguous_13",
+      "query": "想了解一下传统命理的基本框架",
+      "expected_primary": "knowledge",
+      "expected_secondary": []
+    },
+    {
+      "id": "ambiguous_15",
+      "query": "我感觉我的运势到了一个转折点",
+      "expected_primary": "bazi",
+      "expected_secondary": []
+    }
+  ],
+  "failures": []
+}

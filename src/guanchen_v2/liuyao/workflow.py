@@ -1,5 +1,6 @@
 import re
 
+from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
@@ -47,10 +48,12 @@ class LiuyaoAgentRuntime:
         casting_service: HexagramCastingService,
         llm_client: LLMClient,
         retrieval_builder: LiuyaoRetrievalBuilder,
+        checkpointer: BaseCheckpointSaver | None = None
     ):
         self._casting_service = casting_service
         self._llm_client = llm_client
         self._retrieval_builder = retrieval_builder
+        self._checkpointer = checkpointer or InMemorySaver()
 
     async def clarify_node(self, state: LiuyaoState) -> dict:
         q = state["question"]
@@ -217,4 +220,6 @@ class LiuyaoAgentRuntime:
         builder.add_edge("interpret", "finalize")
         builder.add_edge("finalize", END)
 
-        return builder.compile(checkpointer=InMemorySaver())
+        return builder.compile(checkpointer=self._checkpointer)
+
+

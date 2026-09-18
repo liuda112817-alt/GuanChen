@@ -1,5 +1,6 @@
 import json
 from enum import StrEnum
+from typing import Any
 
 from pydantic import (
     BaseModel,
@@ -176,17 +177,31 @@ class DreamAgentRuntime:
         context_service: DreamContextService,
         retrieval_service: DreamRetrievalService,
         llm_client: LLMClient,
+        record_store: Any | None = None,
     ) -> None:
         self._context_service = context_service
         self._retrieval_service = retrieval_service
         self._llm_client = llm_client
 
         self._current_record: DreamRecord | None = None
+        self._record_store = record_store
+
+    async def _restore_record(self) -> None:
+        """跨进程恢复：从持久层加载当前 DreamRecord（Stage 8）。"""
+        if self._current_record is None and self._record_store is not None:
+            self._current_record = await self._record_store.load_latest()
+
+    async def _persist_record(self) -> None:
+        """每个 turn 结束后持久化当前 DreamRecord。"""
+        if self._record_store is not None and self._current_record is not None:
+            await self._record_store.save(self._current_record)
 
     async def handle_turn(
         self,
         user_text: str,
     ) -> DreamAgentResult:
+        await self._restore_record()
+
         # 1. 更新 Dream 状态
         context_result = await self._context_service.apply_turn(
             user_text,
@@ -195,6 +210,7 @@ class DreamAgentRuntime:
 
         # Merge 成功后，新状态立即成为当前状态。
         self._current_record = context_result.record
+        await self._persist_record()
 
         # 2. 需要澄清时短路
         if context_result.status == DreamContextStatus.NEEDS_CLARIFICATION:
@@ -268,6 +284,7 @@ class DreamAgentRuntime:
 
         # 9. 解释成功后才将 interpretation 标为 CURRENT
         self._current_record = mark_interpreted(self._current_record)
+        await self._persist_record()
 
         return DreamAgentResult(
             status=DreamAgentStatus.ANSWERED,

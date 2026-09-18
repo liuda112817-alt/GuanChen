@@ -22,3 +22,10 @@ class LiuyaoPolicyError(LiuyaoError):
     """六爻策略与状态机校验不一致异常"""
 
     pass
+
+class LiuyaoCheckpointError(LiuyaoError):
+    """
+    LangGraph thread 创建、恢复或引用无效等持久化异常。
+    """
+    pass
+

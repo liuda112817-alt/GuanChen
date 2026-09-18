@@ -2,8 +2,7 @@
 
 > 传统文化智能推演与知识服务 AI Agent Application  
 > 建设基线：**GuanChen v2 冻结规划 v1.0**  
-> 当前状态：**Stage 0 — Product / Architecture Freeze（正式产物落地中）**  
-> Stage 1 尚未开始。
+> 当前状态：**Stage 8 — Memory + Persistence 已通过验收（Stage 0–8 完成）**
 
 ## 1. Overview
 
@@ -173,37 +172,44 @@ User Request
 
 ## 7. Current Implementation Status
 
-### Stage 0 已完成设计冻结
+### 已完成：Stage 0 – Stage 8
 
-- Product Charter
-- Four Agent Contracts
-- Four Agent User Flows
-- Conceptual Domain Models
-- Unified Request Lifecycle
-- v2.0 Non-goals / v2.1 Backlog Rules
-- Initial Architecture Decision Records
-- Target Architecture
-- README Skeleton
-- AI Agent / LLM 应用工程当前知识地图
+| Stage | 主题 | 状态 |
+|---:|---|---|
+| 0 | Product / Domain / Architecture Freeze | 完成 |
+| 1 | Engineering Skeleton + LLM Foundation | 完成 |
+| 2 | Bazi Deterministic Tool | 完成 |
+| 3 | Bazi Agent Vertical Slice | 完成 |
+| 4 | Shared RAG + Knowledge Agent | 完成 |
+| 5 | Dream Agent + Context Engineering | 完成 |
+| 6 | Liuyao Agent + LangGraph HITL | 完成 |
+| 7 | Router + Multi-Agent Orchestration | 完成 |
+| 8 | Memory + Persistence | 完成（本阶段） |
 
-### 尚未实现
+### Stage 8 交付摘要
 
-以下能力属于目标架构，但当前尚未进入实现阶段：
+- **Postgres 域表**：`user_profile` / `birth_profile` / `conversation` / `message` / `dream_record` / `decision_record` + `conversation_states`（SQLAlchemy async、FK 级联、索引、`created_at` / `updated_at`）。
+- **SQLAlchemy async repository 层**：UserProfile / BirthProfile（upsert = 用户更正覆盖语义）/ Conversation（幂等 append）/ DreamRecord / DecisionRecord。
+- **LangGraph PostgreSQL 持久 checkpointer**：官方 `AsyncPostgresSaver` + `AsyncConnectionPool` 封装（`memory/checkpointer.py`），六爻 HITL 线程跨进程可恢复。
+- **Memory Selector 领域隔离**：BAZI 只注入 `BIRTH_PROFILE`；LIUYAO 在待确认状态注入决策问题种子；DREAM / KNOWLEDGE / CHITCHAT 不注入任何历史记忆——不把全历史无脑塞给模型。
+- **长期记忆写回**：八字执行成功后持久化出生资料（重启免重问）；六爻每次决策持久化 `DecisionRecord`（含 thread_id，支持 `resume` 接力）。
+- **三类必测全绿**：持久化 / 恢复 / 隔离（见 `tests/` 与 `docs/stage_status.md`）。
 
-- LLMClient
-- Bazi Tool
-- Domain Agents
-- RAG / pgvector
-- Dream multi-turn runtime
-- LangGraph Liuyao workflow
-- Router / Multi-Agent orchestration
-- Persistent Memory
-- MCP Server
-- Evaluation runtime
-- Observability runtime
-- FastAPI / SSE
-- Redis
-- Production deployment
+### 验证状态
+
+```text
+默认套件：342 passed, 41 deselected
+集成套件（-m integration，含 Stage 8 Memory）：40 passed
+静态检查：ruff check src tests scripts 通过
+Stage 7 路由 Eval（rules-only）：黄金集 65 条，规则层命中 56/65、准确率 100%
+```
+
+### 尚未实现（目标架构，后续 Stage）
+
+- MCP Server（Stage 9）
+- Evaluation + Observability runtime（Stage 10）
+- FastAPI / SSE / 前端集成（Stage 11）
+- Redis、生产部署（Stage 12）
 
 ---
 
@@ -232,4 +238,4 @@ User Request
 4. 新想法进入 v2.1 Backlog；
 5. 只有正确性、安全性或不可运行的阻塞问题可以触发最小方案变更，并记录 ADR。
 
-当前 Stage 1 仍处于锁定状态，直到 Stage 0 正式产物完成仓库落地并通过最终文档一致性验收。
+当前 Stage 9（MCP Standardization）尚未开始，等待 Stage 8 Gate 评审确认。

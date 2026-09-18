@@ -21,7 +21,6 @@ EXCLUDE_DIRS = {
     "dist",
     "data",
     "docs",
-    "scripts",
     "项目规划",
     "README",
     "pyproject",

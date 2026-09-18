@@ -1,0 +1,1018 @@
+观尘 GuanChen v2
+旗舰 AI Agent 项目完整建设规划
+冻结版 v1.0
+目标：从 0 系统重建一个可解释、可评测、可部署、可面试深挖的垂直领域 Agent Application
+范围：八字分析 Agent｜解梦 Agent｜易经 / 六爻决策反思 Agent｜传统文化知识 Agent
+执行纪律  本规划一经确认即作为 v2.0 建设基线。阶段内不因“顺手想到”而扩项；新增想法统一进入 v2.1 Backlog。只有阻塞当前阶段的正确性、安全性或不可运行问题，才允许触发变更。
+
+
+1. 项目最终目标与建设原则
+观尘 v2 的目标不是继续修补旧项目，也不是堆更多“玄学 Agent”。项目将从 0 重建，以四个职责差异明显的领域 Agent 为业务载体，系统练习 LLM 结构化输出、Tool Calling、RAG、Context / Memory、LangGraph、HITL、MCP、Evaluation、Observability 和生产部署。
+1.1 最终产品边界
+用户能力
+主要职责
+核心工程能力
+八字分析 Agent
+基于确定性排盘结果 + 检索知识，对用户问题做结构化解释。
+Tool Calling、结构化状态、RAG
+解梦 Agent
+解析梦境要素，结合现实上下文与传统 / 心理视角做多轮解释。
+Context Engineering、会话记忆、自适应追问
+易经 / 六爻决策反思 Agent
+澄清现实问题，用户确认后起卦、检索并生成决策反思。
+LangGraph、HITL、Tool Calling、可恢复工作流
+传统文化知识 Agent
+回答概念、原典、术语和比较类问题，并返回来源。
+Hybrid RAG、Rerank、Citation、Retrieval Eval
+
+1.2 建设总原则
+现成库 / 官方 API 能稳定完成的确定性能力，优先直接调用；项目代码只负责适配、校验、业务契约和编排。
+确定性计算不交给 LLM：历法、四柱、十神、卦象等由代码 / 库产生；LLM 负责理解、选择、解释和整合。
+先单 Agent 闭环，再引入多 Agent；先普通 Python，再在真正需要持久状态、分支和 HITL 时使用 LangGraph。
+只在风险高、容易回归或直接决定系统质量的地方安排测试。其余内容通过阶段验收脚本和人工样例验证。
+不为了简历关键词添加架构。任何新组件必须回答：解决了什么已出现的问题？能否明显提升 Agent 岗位面试价值？
+所有跨阶段新想法进入 Backlog，不插入当前阶段。v2.0 只执行本规划中的固定事项。
+1.3 范围变更规则
+情况
+处理规则
+出现新想法 / 新 Agent / 新框架
+记录到 docs/backlog_v2_1.md；v2.0 不实施。
+当前阶段发现非阻塞优化
+记录为“后续观察项”，不改变本阶段 DoD。
+发现正确性 / 安全 / 无法运行的阻塞问题
+允许替换原方案；必须记录 ADR，说明问题、替代方案和影响范围。
+阶段验收未通过
+只修复本阶段既定任务，不提前做下一阶段。
+依赖库不可用 / API 发生重大变化
+启用本文预先定义的 fallback；没有 fallback 时才允许最小自研。
+
+2. 技术选型：优先调用成熟能力，不重复造轮子
+2.1 已冻结的核心选型
+领域
+冻结方案
+方式
+说明
+Python 工程
+Python 3.12 + uv + pyproject.toml
+调用成熟工具
+现代依赖管理；配置清晰；不练无价值的脚手架。
+数据契约
+Pydantic v2 / pydantic-settings
+调用成熟库
+统一 Agent state、Tool 入参出参、API schema。
+LLM
+langchain-deepseek / ChatDeepSeek
+调用官方集成
+当前集成支持 Tool Calling、Structured Output、Streaming、Async；不自写协议层。
+八字计算
+lunar_python
+调用开源库 + 适配层
+已覆盖四柱、五行、十神、大运等；不自研历法。
+出生地地理编码
+v2.0 核心不使用
+明确不做
+当前不做真太阳时，因此坐标不参与排盘；避免低价值天文计算。
+未来若确需地理编码
+高德 Web Service Geocoding API
+调用官方 API
+不写自己的地址解析器。
+六爻结构计算
+ichingpy
+调用开源库 + 适配层
+可生成卦并进行京房六爻装卦；解释部分仍由 RAG + Agent 负责。
+向量存储
+PostgreSQL + pgvector
+调用成熟扩展
+业务数据与向量统一存储，减少 Chroma/Qdrant 独立服务。
+Dense Embedding
+BAAI/bge-small-zh-v1.5 + sentence-transformers
+调用预训练模型
+中文效果与部署成本平衡；避免训练 embedding。
+Sparse Retrieval
+bm25s + jieba
+调用成熟库
+不手写 BM25；补充术语 / 原典关键词召回。
+Reranker
+BAAI/bge-reranker-base（配置开关）
+调用预训练模型
+仅在固定基准证明收益 / 延迟可接受时生产启用。
+工作流
+LangGraph
+调用框架
+仅在六爻 HITL 和统一编排阶段使用。
+MCP
+官方 MCP Python SDK v2
+调用官方 SDK
+只暴露已有 Tool / Retrieval，不重写业务。
+API
+FastAPI + SSE
+调用成熟框架
+复用现有前端，呈现 Agent 进度 / interrupt / citation。
+持久化
+SQLAlchemy 2.x async + PostgreSQL
+调用成熟库
+长期用户资料、对话、Memory、AgentRun。
+热缓存 / 限流
+Redis asyncio
+调用成熟服务
+只在生产阶段加入，不提前引入。
+质量工具
+pytest + Ruff
+调用成熟工具
+只覆盖必须测试点；不追求测试覆盖率数字。
+部署
+Docker Compose + Nginx + GitHub Actions
+调用成熟工具
+不做 Kubernetes、不做微服务。
+
+版本策略  依赖版本在“进入对应阶段时”锁定到当时的稳定版本，并写入 lockfile。阶段执行期间不主动升级大版本，避免框架升级把学习主线打断。
+
+2.2 明确不建设的内容（v2.0）
+紫微斗数、塔罗、星座、风水、面相、手相等第五业务 Agent。
+真太阳时 / 天文修正自研；出生地仅作为资料字段，不参与 v2.0 核心排盘。
+自研农历、干支、十神、大运、六十四卦基础算法；成熟库能做的全部封装调用。
+模型微调、Embedding 微调、Reranker 微调。
+Kubernetes、Kafka、Celery、微服务拆分、复杂服务网格。
+“多 Agent 辩论”“Agent 互相投票”一类没有业务必要的演示结构。
+支付、会员、社区、内容 CMS、原生 App。
+运行时自由联网搜索；知识回答以可控知识库为核心。
+大规模自动 LLM-as-a-Judge 体系；核心评价以固定数据集和人工样例为主。
+3. 全阶段路线图总览
+Stage
+主题
+核心交付物
+测试策略
+阶段门槛
+0
+产品 / 架构冻结
+完整项目章程、4 Agent 契约、用户流程、非目标
+无自动测试
+所有设计阻塞项关闭
+1
+工程骨架与 LLM 基座
+可运行 CLI + 配置 + Pydantic 契约 + LLMClient
+LLMClient 必要单测 + live smoke
+文本 / 结构化调用稳定
+2
+八字确定性 Tool
+BirthProfile → BaziChart 工具
+固定排盘 fixtures
+工具 100% 输出合法结构
+3
+八字单 Agent 闭环
+缺资料追问 → Tool Calling → 解释
+人工验收场景
+第一条 Agent 垂直闭环可用
+4
+RAG + 知识 Agent
+统一知识库、Hybrid Retrieval、Citation、Bazi 接入
+Retrieval Eval 必测
+Recall / 来源 / 降级达到门槛
+5
+解梦 Agent
+梦境结构化 + 多轮上下文 + RAG
+少量纯函数测试 + 人工多轮验收
+同一梦境可连续更新解释
+6
+六爻 Agent + LangGraph HITL
+问题澄清 → 确认 → 起卦 → RAG → 反思
+Tool fixture + interrupt/resume 必测
+可暂停、恢复、拒绝确认
+7
+统一 Router + 多 Agent
+单领域路由 + 显式双领域并发 + 汇总
+Router 数据集必测
+路由准确且不乱调用 Agent
+8
+Memory + 持久化
+Postgres 长期资料 + LangGraph 持久线程
+持久化 / 恢复必测
+重启后仍可恢复关键状态
+9
+MCP 标准化
+将 2-3 个成熟能力暴露为 MCP Tools
+MCP client smoke
+外部 host 可调用
+10
+Evaluation + Observability
+统一 eval 脚本、trace、token / latency / error
+运行既有评价集
+有可复现质量基线
+11
+Safety + API + 前端整合
+FastAPI / SSE / 安全策略 / 现有前端完整打通
+安全 + API 关键集成测试
+4 Agent 网页可完整使用
+12
+生产部署 + 求职交付
+Docker Compose、Redis、CI/CD、文档、公开 Demo
+部署 smoke
+可公开演示、可复现部署、可面试展开
+
+
+Stage 0｜产品、领域与架构冻结
+阶段结果  不写业务代码。把“我们到底要做什么、什么不做、四个 Agent 各自负责什么”一次性定义清楚。
+
+本阶段固定任务
+冻结产品定位、用户价值和展示口径：传统文化智能推演与知识服务平台，而非“AI 算命大全”。
+冻结四个 Agent 的输入、输出、职责、禁止事项、需要 Tool / RAG / 用户追问的条件。
+为四个 Agent 分别画主用户流程和失败 / 缺资料分支。
+冻结核心领域模型草案：UserProfile、BirthProfile、BaziChart、DreamRecord、DecisionQuestion、HexagramResult、KnowledgeCitation。
+冻结统一请求生命周期：Context → Safety → Route → Requirements → Agent → Tool/RAG → Response → Memory。
+冻结 v2.0 非目标与 Backlog 规则，建立 docs/backlog_v2_1.md。
+建立架构决策记录 ADR 模板，并记录关键选型：lunar_python、pgvector、ichingpy、LangGraph 引入时机、MCP 范围。
+输出项目 README 骨架，只写项目定位、终局架构和阶段路线，不提前宣称未实现能力。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+产品 / Agent 契约
+Markdown 文档 + 流程图；人工设计
+这是业务边界，不能交给框架自动生成。
+技术选型
+使用本文冻结方案；必要时查官方文档
+只验证可用性，不写 PoC。
+架构决策
+ADR 文档
+让后续面试能解释“为什么这样设计”。
+
+必须测试 / 验证
+本阶段不安排自动化测试。仅做文档审阅或人工运行确认。
+进入下一阶段的硬门槛
+四个 Agent 的职责无重叠或歧义；任何典型用户问题都能明确归属。
+Tool 与 Agent 边界清晰：确定性计算没有被设计成 Agent。
+v2.0 非目标清单确认，不存在“先做着以后再说”的隐藏任务。
+Stage 1-12 路线确认后冻结；后续不在阶段内扩项。
+本阶段重点练习能力
+产品建模、Agent 边界划分、系统设计、ADR、范围管理、面试级架构表达。
+本阶段明确不做
+不创建复杂目录。
+不接数据库。
+不写 LangGraph。
+不写任何业务 Agent。
+Stage 1｜工程骨架与 LLM 基础设施
+阶段结果  建立最小但长期可演进的 Python 项目骨架，做到文本输出、结构化输出和错误处理稳定。
+
+本阶段固定任务
+使用 uv 初始化 Python 3.12 项目，建立 pyproject.toml、环境变量模板和 lockfile。
+建立最小目录：config、models、llm、prompts、core、scripts、tests；禁止提前创建十几个空层。
+使用 pydantic-settings 建立单一配置入口：模型名、API Key、超时、重试、日志级别。
+建立 LLMClient：普通文本调用、Pydantic 结构化输出、统一异常、有限重试；业务 Prompt 不负责输出协议。
+使用 langchain-deepseek 的 ChatDeepSeek，不自行实现 DeepSeek HTTP 协议。
+建立最小 Prompt 组织规范：system 与 user template 分离、模型输入序列化集中处理。
+建立最小日志规范，禁止日志写入完整敏感用户内容。
+写一个 scripts/smoke_llm.py，验证 text / structured 两种调用。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+LLM 接入
+ChatDeepSeek
+官方 LangChain 集成已经支持 Tool Calling / Structured Output / Async / Streaming。
+结构化输出
+with_structured_output + Pydantic
+不自行解析自然语言 JSON。
+配置
+pydantic-settings
+类型安全 + fail-fast。
+代码质量
+Ruff
+只做 lint / format，不增加复杂静态分析链。
+
+必须测试 / 验证
+LLMClient 的“结构化结果为空 / 解析失败 / 重试耗尽”用 fake model 做少量单测。
+一次真实 API smoke：普通文本成功、结构化模型成功；live smoke 不进入 CI。
+进入下一阶段的硬门槛
+scripts/smoke_llm.py 能稳定完成 text 和 structured 两类调用。
+任何 LLM 异常统一转成项目异常，不向业务层泄露供应商细节。
+不存在 FastAPI、数据库、LangGraph、RAG 等超前依赖。
+本阶段重点练习能力
+LLM 抽象层、结构化输出、Pydantic 泛型、Prompt / 协议职责分离、错误边界、依赖管理。
+本阶段明确不做
+不做 Tool Calling。
+不做 Agent。
+不做 Web API。
+不做持久化。
+Stage 2｜八字确定性计算 Tool
+阶段结果  把出生资料稳定转换成自己的 BaziChart 业务结构；LLM 完全不参与排盘。
+
+本阶段固定任务
+定义 BirthProfile：出生年月日时分、性别、可选出生地文本、排盘方法元数据。
+定义 BaziChart：四柱、天干地支、日主、五行、藏干、天干十神、地支十神、大运基础结果；只保留后续 Agent 真正会用的数据。
+封装 lunar_python：所有第三方对象只存在于 adapter 内，业务层只认识 BaziChart。
+固定晚子时 / 流派配置并写入 calculation_method，禁止隐式使用库默认值而不记录。
+根据需求封装大运结果；不自行实现历法公式。
+建立 calculate_bazi Tool 的 Pydantic 入参 / 出参；后续 Agent 可直接绑定。
+出生地在 v2.0 仅保存原始文本，不调用高德、不做真太阳时修正。
+为依赖库版本和计算配置写一份 docs/bazi_calculation_contract.md。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+四柱 / 五行 / 十神 / 大运
+lunar_python
+开源库已有明确 API；只做适配。
+真太阳时
+不实现
+领域争议 + 低 Agent 学习价值；避免自研天文公式。
+地理编码
+本阶段不调用
+不参与计算就不引入网络依赖。
+Tool 暴露
+LangChain @tool / typed callable
+Tool 仅包一层业务函数，不重复计算逻辑。
+
+必须测试 / 验证
+必须测试：至少 8 个固定 BirthProfile fixture，覆盖普通时刻、23 点边界、闰月附近、男女大运等。
+至少 2 个 fixture 对照 lunar_python 官方 demo / 文档示例，确保 adapter 没有字段映射错误。
+非法日期 / 缺字段由 Pydantic 或库错误转为明确业务异常。
+进入下一阶段的硬门槛
+所有固定 fixture 输出稳定且符合 BaziChart schema。
+业务层没有直接 import lunar_python；第三方库被隔离在 tool/adapter。
+LLM 不参与任何确定性排盘字段生成。
+本阶段重点练习能力
+第三方库评估与封装、Tool schema、确定性 / 概率性边界、Adapter Pattern、领域模型。
+本阶段明确不做
+不做命理解读。
+不做 RAG。
+不做出生地坐标。
+不做 Agent 记忆。
+Stage 3｜八字分析 Agent：第一条完整垂直闭环
+阶段结果  完成“用户提问 → 判断资料是否完整 → 调用排盘 Tool → 生成解释”的第一个真正 Agent。
+
+本阶段固定任务
+定义 BaziAgentInput / BaziAgentResult / NeedUserInput 等业务结果，不让 Agent 只能返回自由文本。
+使用 LangChain 当前稳定的高层 Agent / tool-binding 能力；不自写 OpenAI function-call 协议和无限 agent loop。
+绑定 calculate_bazi Tool；只有资料完整时才允许调用。
+缺少出生资料时返回明确字段需求，不启动排盘、不让模型猜测。
+Prompt 约束：模型必须区分“排盘事实”和“解释性判断”，不得伪造 Tool 未提供的数据。
+限制单轮 Tool 调用次数和总模型调用次数，防止循环。
+建立 CLI 对话脚本，支持补充缺失 BirthProfile 后继续本次任务。
+本阶段暂不接 RAG；把模型自身知识造成的局限记录下来，作为 Stage 4 的真实问题来源。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+Agent Runtime
+LangChain 高层 Agent / ChatDeepSeek tool binding
+复用成熟 Tool Calling 机制，不自造协议。
+Tool
+Stage 2 calculate_bazi
+Agent 只选择是否调用，不参与计算。
+资料补全
+业务代码判断 + 结构化 NeedUserInput
+确定性缺字段不需要多一次 LLM。
+
+必须测试 / 验证
+不做大规模自动 Agent 测试。
+人工固定验收 6 类场景：资料完整、缺时间、缺性别、重复补充、问事业、问感情；检查 Tool 是否按预期调用。
+必须验证：资料不全时 Tool 调用次数为 0；资料完整时排盘结果来自 Tool。
+进入下一阶段的硬门槛
+至少 6 个验收场景全部能完成，无无界循环。
+Agent 不会把自己生成的四柱当 Tool 结果。
+用户补充资料后能继续原问题，而不是重新开始陌生对话。
+本阶段重点练习能力
+真实 Tool Calling、Agent 决策边界、上下文补全、调用预算、Agent contract。
+本阶段明确不做
+不做多 Agent。
+不做 LangGraph 自定义图。
+不做数据库。
+不做最终命理知识质量优化。
+Stage 4｜RAG 基础设施 + 传统文化知识 Agent
+阶段结果  建立项目唯一的知识检索底座，并让知识 Agent 与八字 Agent 共享，而不是每个 Agent 各做一套 RAG。
+
+本阶段固定任务
+冻结第一批语料：公版 / 可合法使用的《周易》《渊海子平》《三命通会》《滴天髓》《增删卜易》及自行整理的术语 / 注释；不批量抓取现代版权内容。
+定义统一 KnowledgeDocument / KnowledgeChunk metadata：domain、source_title、section、source_type、chunk_id、text。
+实现 ingestion：读取 → 清洗 → 按章节 / 段落语义切片 → metadata → embedding → PostgreSQL/pgvector。
+Dense Retrieval：bge-small-zh-v1.5；Sparse Retrieval：bm25s + jieba；使用 RRF 合并候选。
+实现 metadata filter，避免八字问题召回大量六爻文本。
+实现 Reranker adapter（bge-reranker-base）；按固定性能门槛决定生产默认是否开启。
+定义 RetrievalResult 和 Citation；回答必须能追溯 source_title / section / chunk_id。
+实现 Knowledge Agent：检索 → 基于证据回答 → 证据不足明确说不足，不编造原典。
+把 Retrieval Tool 接入 Bazi Agent，使八字解释从“模型常识”升级为“排盘事实 + 检索依据”。
+建立 scripts/eval_retrieval.py 和固定黄金查询集。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+Vector Store
+PostgreSQL + pgvector
+同一数据库承载业务数据和向量；减少服务数量。
+Dense
+sentence-transformers + bge-small-zh-v1.5
+轻量中文模型，适合普通服务器。
+Sparse
+bm25s + jieba
+直接调用库，不手写 BM25。
+Fusion
+最小 RRF 函数
+公式简单、可解释；无必要引入更大框架。
+Rerank
+FlagEmbedding / bge-reranker-base
+只对候选做重排；通过预定义性能门槛控制生产开关。
+Chunking
+LangChain text splitters + 少量领域规则
+优先按原典章节边界，再按长度兜底。
+
+必须测试 / 验证
+必须做 Retrieval Eval：至少 30 条人工标注 query → expected source / section。
+核心指标：Recall@5 &gt;= 0.85；记录 MRR@10。未达到不得进入下一阶段。
+Reranker 决策门槛：相对 MRR@10 提升 &gt;= 5%，且在目标服务器增加的 p95 检索延迟 &lt;= 800ms 才默认开启；否则保持可配置关闭。
+手工检查至少 10 个 Knowledge Agent 回答，确认 citation 对得上实际 chunk。
+进入下一阶段的硬门槛
+ingestion 和 retrieval 使用完全一致的 collection / schema / embedding 约定。
+Knowledge Agent 不使用无法追溯来源的“原典引用”。
+Bazi Agent 能同时显示 Tool 排盘事实与检索依据。
+黄金查询集达到 Recall@5 门槛。
+本阶段重点练习能力
+RAG 数据契约、chunking、pgvector、hybrid retrieval、RRF、reranking、citation、retrieval evaluation。
+本阶段明确不做
+不做知识图谱。
+不做 Agentic RAG 循环检索。
+不做自研向量模型。
+不做大规模网页抓取。
+Stage 5｜解梦 Agent：Context Engineering 与多轮任务
+阶段结果  实现一个与八字完全不同的 Agent：核心不是计算 Tool，而是从多轮对话中维护梦境对象和现实上下文。
+
+本阶段固定任务
+定义 DreamElements：人物、场景、对象、行为、情绪、异常变化、用户主观感受。
+定义 DreamRecord：原始描述、结构化要素、补充现实背景、当前解释状态。
+使用结构化输出做梦境要素提取；提取只是理解，不直接得出结论。
+建立“是否需要追问”的简单规则：只有缺少会显著影响解释的信息时才追问，避免问卷式体验。
+构造检索查询：梦境象征 / 情绪 / 现实压力分别检索，结果仍走共享 Retrieval Service。
+输出至少两个明确区分的视角：传统文化象征 + 非诊断性的心理 / 情境解释。
+在当前 Python 会话内维护 DreamRecord，多轮补充时更新同一个对象，而不是重新解释一个新梦。
+记录“当前进程内 session memory”的局限，持久化统一放到 Stage 8。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+梦境抽取
+ChatDeepSeek structured output
+适合开放文本 → 强类型结构。
+追问判断
+代码规则优先，LLM 仅处理语义缺口
+减少无意义模型调用。
+RAG
+复用 Stage 4 Retrieval Service
+不建 DreamRAG。
+Session Context
+进程内对象 / conversation service
+先练 context selection，不提前接 DB。
+
+必须测试 / 验证
+只为“DreamRecord merge / update”这类纯函数写少量单测。
+人工多轮验收至少 6 组：首次描述、补充现实背景、补充梦中人物、改正此前信息、追问“然后呢”、切换到新梦。
+进入下一阶段的硬门槛
+同一个 DreamRecord 连续 3 轮补充后结构不丢失。
+Agent 不会把传统象征写成确定现实预言。
+不因为每轮补充而完整重复上一轮所有解释。
+本阶段重点练习能力
+Context Engineering、结构化信息抽取、state merge、多轮任务、领域隔离 context。
+本阶段明确不做
+不做心理诊断。
+不做长期 Memory。
+不做 LangGraph。
+不做梦境图片 / 多模态。
+Stage 6｜易经 / 六爻决策反思 Agent + LangGraph HITL
+阶段结果  第一次在“确实需要暂停、确认、恢复”的业务里引入 LangGraph。
+
+本阶段固定任务
+冻结 DecisionQuestion schema：用户原问题、澄清后的单一问题、现实约束、确认状态。
+封装 ichingpy：生成 / 构造卦象、装卦 / 纳甲等确定性结构，统一映射成 HexagramResult。
+起卦策略冻结：支持“系统随机三枚硬币法”和“用户手工输入六爻结果”；随机过程必须在回答中透明标注。
+设计 LiuyaoState：question、clarification、confirmed、hexagram、citations、final_response。
+使用 LangGraph：clarify → interrupt(confirm) → cast tool → retrieve → interpret → finalize。
+只有用户明确确认问题后才允许起卦；取消 / 修改会回到澄清节点。
+本阶段使用 InMemory checkpointer 理解 HITL；跨进程持久化留 Stage 8。
+最终输出定位为“决策反思”，必须结合现实条件，不输出“必须辞职 / 必须投资”等绝对指令。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+卦象 / 装卦
+ichingpy
+已有生成方法和 SixLinesDivinationEngine；不自研映射表。
+随机性
+Python secrets / SystemRandom + 明示结果
+只负责三枚硬币模拟，不让 LLM“随机”。
+工作流
+LangGraph StateGraph + interrupt / Command
+框架原生支持暂停恢复。
+知识解释
+共享 Retrieval Service
+原典 / 注释来自同一知识库。
+
+必须测试 / 验证
+必须测试 Hexagram Tool 固定输入 fixture：给定六爻状态应得到稳定 HexagramResult。
+必须测试 LangGraph interrupt/resume：确认前不得调用 cast tool；确认后能继续；拒绝 / 修改能走正确分支。
+不测试文学表达质量。
+进入下一阶段的硬门槛
+工作流能稳定暂停、恢复、修改问题、取消。
+同一固定输入产生稳定卦象结构。
+用户未确认时工具调用次数为 0。
+本阶段重点练习能力
+LangGraph state、conditional edge、interrupt、Command resume、HITL、幂等思维、Tool + RAG workflow。
+本阶段明确不做
+不做复杂六爻流派全覆盖。
+不做自动现实决策。
+不做跨进程 checkpoint。
+Stage 7｜统一 Router 与多 Agent 编排
+阶段结果  把四个已经独立可用的 Agent 接入一个统一入口；只在明确跨领域问题时进行有限并发。
+
+本阶段固定任务
+定义 IntentType：BAZI、DREAM、LIUYAO、KNOWLEDGE、CHITCHAT、OUT_OF_SCOPE。
+定义 RoutingResult：primary_intent、secondary_intents（最多 1 个）、confidence、required_data、reason。
+建立两层路由：高精度规则命中明显请求；其余交给结构化 LLM Router。
+单领域请求只调一个 Agent；知识问答不先跑八字资料检查。
+只支持显式双领域场景，例如“结合八字和昨晚的梦看一下”；最多并发两个 Agent。
+为双领域结果建立 Synthesizer，只整合两方已有结论 / 证据，不制造新的第三套推演。
+统一顶层 ConversationGraph：load context → route → requirement check → agent(s) → synthesize / direct → response。
+删除全局预先 RAG：每个 Agent 只在需要时调用 Retrieval Tool。
+建立路由黄金数据集。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+明显关键词
+纯代码规则
+省一次模型调用，适合高精度明显意图。
+模糊意图
+ChatDeepSeek structured output
+让模型处理语言歧义。
+并发
+LangGraph fan-out / reducer
+只用于显式 2-domain，不扩展到全 Agent 并发。
+汇总
+一个轻量 Synthesizer
+不做“总判官”强行覆盖专家。
+
+必须测试 / 验证
+必须做 Router Eval：至少 60 条人工标注 query，覆盖 6 类意图与 10+ 双领域 / 模糊场景。
+目标：primary intent accuracy &gt;= 0.92；对明显 Knowledge / Dream 请求不得错误要求出生资料。
+人工验证 5 个双领域案例，确认只调用命中的两个 Agent。
+进入下一阶段的硬门槛
+路由数据集达到准确率门槛。
+单领域请求不会触发无关 Agent。
+双领域最多两个 Agent，并且总调用次数有上限。
+CHITCHAT / OUT_OF_SCOPE 有轻量旁路，不跑 RAG 和专业 Tool。
+本阶段重点练习能力
+Intent Routing、Multi-Agent fan-out/fan-in、成本控制、路由评测、顶层 orchestration。
+本阶段明确不做
+不支持 3-4 Agent 同轮“会诊”。
+不做自治 Agent 互相辩论。
+不做动态创建 Agent。
+Stage 8｜Memory 与持久化
+阶段结果  把此前的进程内状态升级为可恢复的真实产品状态，同时严格区分 thread state 与长期用户资料。
+
+本阶段固定任务
+设计 PostgreSQL 表：user_profile、birth_profile、conversation、message、dream_record、decision_record。
+使用 SQLAlchemy async repository；只为真实持久化需求创建 repository，不做抽象接口层套娃。
+将 LangGraph checkpointer 升级到 PostgreSQL 持久实现，使 HITL thread 可跨进程恢复。
+长期 Memory 只保存“用户明确提供 / 确认”的结构化资料；不自动从每句话抽取人格、价值观等隐式事实。
+实现 Memory Selector：八字只读取 BirthProfile + 相关近期对话；解梦读取当前 DreamRecord；六爻读取当前 DecisionRecord。
+建立 Memory namespace / domain 隔离，防止梦境上下文污染八字分析。
+实现用户更正：后写的明确更正覆盖当前有效事实，并保留 updated_at；v2.0 不做完整版本树。
+PostgreSQL 已由 Stage 4 使用 pgvector，本阶段复用同一数据库。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+短期 thread state
+LangGraph PostgreSQL checkpointer
+直接使用框架 persistence，不手写 checkpoint 表。
+长期用户资料
+SQLAlchemy + PostgreSQL
+业务 schema 由我们控制。
+Memory 抽取
+只保存显式结构化信息
+避免再加一个不可靠的“自动记忆 Agent”。
+Redis
+本阶段仍不引入
+持久状态先用 Postgres；Redis 留给生产缓存 / 限流。
+
+必须测试 / 验证
+必须做持久化集成测试：BirthProfile 写入 / 读取 / 更正。
+必须做 checkpoint 恢复测试：六爻流程 interrupt 后模拟进程重建，再用同 thread_id resume。
+必须做领域隔离测试：DreamRecord 不出现在 Bazi Agent 的 memory context。
+进入下一阶段的硬门槛
+应用重启后 BirthProfile、DreamRecord、DecisionRecord 仍可恢复。
+LangGraph interrupted workflow 可跨进程 resume。
+Memory Selector 不把全历史无脑塞给模型。
+本阶段重点练习能力
+Short-term vs long-term memory、checkpoint、thread_id、repository、context selection、数据生命周期。
+本阶段明确不做
+不做向量化长期记忆。
+不做自动人格画像。
+不做复杂历史版本 / time travel 产品功能。
+Stage 9｜MCP 标准化：把成熟能力暴露给外部 Agent Host
+阶段结果  MCP 只做“标准接口层”，不让项目内部为了 MCP 重构业务。
+
+本阶段固定任务
+使用官方 MCP Python SDK v2 创建一个 MCP Server。
+只暴露已经稳定的 3 个能力：calculate_bazi、knowledge_search、cast_hexagram。
+MCP Tool 的 schema 复用现有 Pydantic / Tool contract，避免重复定义。
+使用 Streamable HTTP 作为演示传输；本地可用官方 client / Inspector 验证。
+为 MCP tools 增加最小鉴权 / 访问范围说明，但不在本阶段做复杂 OAuth。
+README 增加“为什么内部 Agent 不通过 MCP 调自己的 Tool”：内部直接调用更简单；MCP 用于跨应用标准化暴露。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+MCP SDK
+官方 mcp Python SDK v2 / MCPServer
+不自实现协议。
+Transport
+Streamable HTTP
+官方推荐的生产型传输。
+业务复用
+直接调用 Stage 2 / 4 / 6 service
+MCP 不拥有业务逻辑。
+
+必须测试 / 验证
+必须做 MCP client smoke：列出 tools，并分别成功调用 3 个工具。
+不做 MCP 压测或协议级单测，官方 SDK 已覆盖协议。
+进入下一阶段的硬门槛
+外部 MCP client 能发现并调用 3 个工具。
+MCP server 内没有复制一份八字 / 检索 / 六爻实现。
+本阶段重点练习能力
+MCP server/client、tool schema interoperability、协议边界、内部 API vs 标准协议取舍。
+本阶段明确不做
+不做 MCP Marketplace。
+不接十几个第三方 MCP。
+不让内部运行链强制依赖 MCP。
+Stage 10｜Evaluation 与 Observability
+阶段结果  把“感觉能用”升级成“知道路由、检索、工具、Agent 成功率和成本表现”。
+
+本阶段固定任务
+统一已有评价资产：Bazi fixtures、Retrieval golden set、Router dataset、HITL workflow cases。
+定义 AgentRun / RunStep 观测模型：agent、node、tool、latency、token、error、retrieved_chunk_ids、status。
+为 LLM、Tool、Retrieval、Graph node 增加统一 trace hook，不保存不必要的敏感完整内容。
+建立 scripts/run_evals.py，一次运行输出 JSON + Markdown 报告。
+记录每种 route 的模型调用次数上限、Tool 调用次数、p50/p95 latency、token 使用。
+建立端到端人工评价集（约 20 个业务场景），只评价：任务完成、事实来源、是否错误调用 Tool / Agent、是否越界。
+LangSmith 只作为可选开发 tracing 集成；项目自身评价报告不依赖外部 SaaS。
+根据数据消除明显重复调用 / 串行等待，但不做过早性能微优化。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+Trace
+项目内 RunStep + 标准 logging
+保证公开项目自己可复现。
+LLM Trace（可选）
+LangSmith env 开关
+用于调试，不作为生产必需依赖。
+Eval
+pytest / 独立 scripts + 固定 JSON fixtures
+不构建复杂评测平台。
+报告
+Markdown / JSON
+便于 README 和面试展示。
+
+必须测试 / 验证
+本阶段不是增加大量单测，而是运行并固化前面各阶段的“必须评价集”。
+端到端 20 个固定场景至少 95% 能完成预期流程（模型供应商网络异常单独统计）。
+所有 route 都必须有模型 / Tool 调用上限，不允许无限循环。
+进入下一阶段的硬门槛
+一条命令能生成完整 eval 报告。
+能回答：Router 准确率、RAG Recall@5、Tool fixture 通过率、Agent route 调用成本和错误类型。
+至少保留一份基线报告作为后续优化对照。
+本阶段重点练习能力
+Agent evaluation、retrieval metrics、trace design、token/cost/latency、failure taxonomy、可观测性。
+本阶段明确不做
+不做自动文学 / 玄学“总评分”。
+不做六维 LLM Judge 校准实验。
+不建设完整 APM 平台。
+Stage 11｜Safety、FastAPI、SSE 与现有前端整合
+阶段结果  把已成熟的 Agent Runtime 变成真实可用 Web 产品；产品流程按需补资料，而不是先强制出生信息。
+
+本阶段固定任务
+设计稳定 API contract：chat、resume interrupt、profile、session、citation。
+FastAPI 接入 ConversationGraph；业务层不依赖 HTTP 对象。
+SSE 事件类型冻结：start、route、need_input、tool_start、tool_end、retrieval、token、interrupt、done、error。
+安全预检：代码规则直接拦截明确自伤 / 极端高风险语句；模糊高风险才调用结构化 safety classifier。
+高风险边界：医疗、法律、投资等问题不得由命理输出替代专业决策；危机请求跳过玄学推演。
+输出安全：禁止绝对灾祸 / 死亡 / 疾病断言，保留传统文化 / 娱乐 / 反思定位。
+改造现有前端：按 Agent 实际需要弹出资料补充，不再全局强制 BirthProfile。
+前端展示 Agent 状态、Tool 进度、citation；六爻 interrupt 以确认卡片呈现。
+实现最小匿名 / session 身份方案；v2.0 不开发复杂账号产品。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+Web API
+FastAPI
+成熟 async API 框架。
+Streaming
+SSE / StreamingResponse
+现有前端容易消费，适合 Agent 进度事件。
+Safety
+规则优先 + 模糊请求 LLM classifier
+大多数正常请求不增加额外模型延迟。
+前端
+复用现有页面并调整交互
+不从 0 重写 UI。
+
+必须测试 / 验证
+必须做 API 集成测试：正常 chat、need_input、interrupt/resume、error 四类关键路径。
+必须做 Safety fixture：明确自伤、高风险医疗 / 投资、普通命理请求，确保路由结果符合策略。
+不做前端单元测试体系；通过固定浏览器验收清单。
+进入下一阶段的硬门槛
+四个 Agent 都能从网页完成端到端流程。
+解梦 / 知识问题不会要求出生资料。
+六爻确认能够通过前端 interrupt/resume。
+citation、Tool 状态和错误状态前端可见。
+危机 / 高风险请求不会进入玄学预测流程。
+本阶段重点练习能力
+Agent API contract、SSE streaming、HITL UI、Safety routing、前后端状态同步。
+本阶段明确不做
+不重做视觉设计。
+不做复杂账号中心。
+不做支付。
+不做 WebSocket，SSE 足够。
+Stage 12｜生产部署、可靠性与求职交付
+阶段结果  把项目变成可公开访问、可复现部署、可展示架构演进和评价数据的最终旗舰项目。
+
+本阶段固定任务
+Docker Compose 固化 api、PostgreSQL+pgvector、Redis；Nginx / HTTPS 复用现有服务器环境。
+Redis 仅用于：限流、幂等键、短 TTL 热缓存；不把它当长期 Memory 数据源。
+增加 health / readiness 检查、超时、有限重试、外部依赖降级。
+秘密统一环境变量，不进 Git；准备 .env.example。
+建立 GitHub Actions：Ruff、必须测试、Docker build；不追求复杂流水线。
+部署脚本 / README 让新环境可以按步骤启动，不依赖个人电脑隐式状态。
+整理 docs：系统架构图、Agent 流程图、RAG 方案、Memory 方案、Evaluation 报告、ADR。
+准备 3 个面试 Demo 场景：八字 Tool+RAG、解梦多轮 Memory、六爻 HITL；另准备 Knowledge RAG citation 快速演示。
+准备“v1 → v2 重构复盘”：旧项目有哪些模块堆叠 / 体验问题，新版如何按真实需求渐进引入。
+最终简历只写已真实实现并可演示的能力。
+实现方式与“调用 / 自研”边界
+事项
+实现方式
+选择理由
+部署
+Docker Compose
+单机旗舰项目足够；不使用 Kubernetes。
+向量数据库
+pgvector 官方 Docker / extension
+与 PostgreSQL 一体。
+缓存 / 限流
+Redis asyncio
+成熟客户端，不自写网络协议。
+CI
+GitHub Actions
+只跑关键质量门槛。
+反向代理
+现有 Nginx + 域名 / HTTPS
+复用现有服务器能力。
+
+必须测试 / 验证
+必须做生产 smoke：health、一次 Knowledge、一次 Bazi、一次 Dream 多轮、一次 Liuyao interrupt/resume。
+CI 只运行前述“必须测试”，不设覆盖率 KPI。
+上线前运行完整 eval 报告并保存版本号 / commit。
+进入下一阶段的硬门槛
+公开 URL 可使用，部署后无本地路径 / 本地模型文件等隐式依赖。
+README 能让他人理解并启动核心服务。
+CI 通过，秘密未提交，日志无明显敏感数据泄露。
+有最终 eval 报告和 3 个稳定面试 Demo。
+能够独立解释：为什么某处用 Agent、某处只用 Tool、为什么 LangGraph 在 Stage 6 才引入。
+本阶段重点练习能力
+生产部署、故障边界、缓存 / 幂等、CI/CD、项目叙事、系统设计面试表达。
+本阶段明确不做
+不做 Kubernetes。
+不做微服务。
+不做复杂多区域高可用。
+不为了“生产级”继续无限扩项。
+4. 测试与评价策略：只测试必须测试的地方
+本项目不追求单元测试覆盖率。测试只服务于三类风险：确定性计算错误、流程 / 状态错误、系统核心质量退化。Prompt 文风和主观内容质量主要用固定人工场景验收。
+对象
+为什么必须测
+测试方式
+所在阶段
+LLMClient 结构化失败 / 重试
+一旦失效会影响所有 Agent
+fake model 单测 + live smoke
+Stage 1
+八字 Tool
+确定性计算错误会污染所有回答
+固定 fixture / 对照官方示例
+Stage 2
+Bazi Tool 调用条件
+资料不全误调用会产生假事实
+人工固定 Agent 场景
+Stage 3
+RAG Retrieval
+检索是知识可信度根基
+Golden queries + Recall@5 / MRR
+Stage 4
+Dream state merge
+多轮状态容易覆盖 / 丢失
+纯函数单测 + 人工多轮
+Stage 5
+六爻 Tool
+确定性卦象结构必须稳定
+固定输入 fixture
+Stage 6
+LangGraph interrupt/resume
+HITL 状态错误会让工作流失效
+图集成测试
+Stage 6 / 8
+Router
+决定 Agent 调用成本与正确性
+60+ 标注意图数据集
+Stage 7
+Memory domain isolation
+错误记忆污染会导致严重回答问题
+持久化 / 隔离集成测试
+Stage 8
+MCP 暴露
+标准协议是否真实可用
+官方 client smoke
+Stage 9
+Safety
+高风险错误不可接受
+固定 safety fixtures
+Stage 11
+API 核心路径
+前后端状态机容易断
+少量 FastAPI 集成测试
+Stage 11
+部署
+本地能跑不等于线上能跑
+生产 smoke
+Stage 12
+
+明确不测  不安排：每个 Prompt 的快照测试、所有 Repository CRUD 单测、前端组件单测、覆盖率 KPI、自动 LLM Judge 大规模打分。只有出现真实回归风险时，才在 v2.1 重新评估。
+
+5. 每阶段固定交付物
+Stage
+必须产物
+0
+product_charter.md / agent_contracts.md / architecture.md / roadmap.md / backlog_v2_1.md / ADRs
+1
+最小项目骨架 / LLMClient / config / smoke_llm.py
+2
+BirthProfile / BaziChart / lunar_python adapter / calculate_bazi tool / fixtures
+3
+Bazi Agent / CLI vertical slice / acceptance cases
+4
+knowledge corpus contract / ingestion / pgvector / hybrid retriever / Knowledge Agent / retrieval eval
+5
+Dream models / extraction / context merge / Dream Agent / multi-turn acceptance cases
+6
+HexagramResult / ichingpy adapter / Liuyao LangGraph / HITL tests
+7
+Router / ConversationGraph / Synthesizer / routing dataset + report
+8
+Postgres domain tables / memory selector / persistent checkpointer / recovery tests
+9
+MCP server / 3 tools / client smoke / MCP README
+10
+AgentRun trace / eval runner / baseline report
+11
+FastAPI / SSE events / Safety / frontend integration
+12
+Docker Compose / Redis / CI / deployment docs / final eval / interview demo docs
+
+6. 关键能力“调用现成能力 / 最小自研”清单
+能力
+首选方案
+我们真正要写的代码
+允许自研的触发条件
+八字排盘
+lunar_python
+Adapter + Pydantic schema + Tool wrapper
+库缺少项目必须字段时，只补“派生映射”，不重写历法。
+地理编码
+v2.0 不使用；如未来需要用高德 Web API
+httpx client + response schema
+不允许自研地址解析。
+六爻装卦
+ichingpy
+Adapter + HexagramResult + Tool wrapper
+库严重不兼容时，才实现本项目最小固定规则。
+LLM Tool Calling
+LangChain / ChatDeepSeek 原生 tool calling
+Tool 定义、业务 precondition、结果处理
+不自写 function-call JSON 协议。
+结构化输出
+ChatDeepSeek structured output + Pydantic
+业务模型、错误边界
+不写 regex JSON parser。
+向量索引
+pgvector
+ORM / SQL 查询封装、metadata filter
+不自研 ANN。
+Embedding
+预训练 BGE
+批量 encode adapter
+不训练模型。
+BM25
+bm25s
+tokenization / corpus adapter
+不手写 BM25 公式。
+Rerank
+BGE reranker
+候选适配 / 开关 / benchmark
+不训练 reranker。
+LangGraph 持久化
+官方 checkpointer
+state schema / thread mapping
+不手写 checkpoint engine。
+MCP
+官方 Python SDK v2
+tool registration / auth boundary
+不实现 MCP 协议。
+SSE
+FastAPI StreamingResponse
+事件协议 / generator
+不引入 WebSocket。
+
+7. 知识提升与面试价值映射
+阶段
+核心练习
+面试可讲的问题
+1
+LLMClient、structured output
+如何隔离模型供应商？为什么 Prompt 与结构协议分离？
+2
+Tool adapter、确定性计算
+为什么排盘不是 Agent？怎么避免 LLM 生成错误事实？
+3
+Tool Calling、Agent precondition
+Agent 什么时候调用工具？如何防止循环和无效调用？
+4
+RAG、Hybrid、Rerank、Eval
+如何切片？为何 hybrid？如何证明 retrieval 改善？
+5
+Context Engineering
+多轮对话怎么避免无限塞 history？怎么维护任务对象？
+6
+LangGraph / HITL
+为什么此处需要图？interrupt 如何恢复？副作用为什么要幂等？
+7
+Router / Multi-Agent
+为什么不是所有 Agent 都并发？如何评价 Router？
+8
+Memory / Persistence
+thread memory 与 long-term memory 有什么区别？
+9
+MCP
+MCP 与普通 Tool / REST API 的边界是什么？为什么内部不必 MCP 化？
+10
+Eval / Observability
+如何判断 Agent 真的变好？如何查一次失败运行？
+11
+Safety / Streaming
+高风险请求如何绕过玄学链路？HITL 怎么映射到前端？
+12
+Production
+如何部署、限流、降级、控制成本，并保持项目不过度架构？
+
+8. 最终架构预期（Stage 12 完成后）
+Web Frontend    │ HTTP / SSE    ▼FastAPI Gateway + Safety    │    ▼ConversationGraph / Router    ├── Bazi Agent ─── calculate_bazi Tool ─── lunar_python    ├── Dream Agent ── Dream Context / Memory    ├── Liuyao Agent ─ LangGraph HITL ─────── ichingpy    └── Knowledge Agent             │             ▼      Shared Retrieval Service        ├── Dense: BGE        ├── Sparse: BM25S        ├── RRF + Reranker        └── PostgreSQL + pgvectorShared Infrastructure    ├── PostgreSQL: profiles / conversations / memory / vectors / agent runs    ├── Redis: rate limit / idempotency / short cache    ├── MCP Server: calculate_bazi / knowledge_search / cast_hexagram    ├── Evaluation: router / retrieval / workflow / e2e    └── Observability: trace / token / latency / error
+
+8.1 请求生命周期
+User Query  ↓Safety Pre-check  ↓Load relevant context  ↓Router  ↓Requirement Check  ├─ Missing user data → NeedUserInput / HITL  └─ Ready       ↓   Selected Agent(s)       ↓   Tool / Retrieval as needed       ↓   Final Response + Citation       ↓   Memory Update (explicit / confirmed only)       ↓   Trace + Persistence       ↓   SSE to Frontend
+
+9. v2.1 Backlog：现在记录，但 v2.0 一律不做
+真太阳时 / 更细流派切换。
+紫微斗数 / 风水等新业务域。
+多模态户型图 / 手相 / 面相。
+Agentic RAG 的多轮检索规划。
+向量化长期记忆 / 自动记忆抽取。
+Admin 语料管理后台。
+账号体系 / OAuth / 支付会员。
+更复杂的多模型路由、模型降级、A/B 实验平台。
+Kubernetes、多副本、消息队列。
+10. 旧版项目只作为需求原型与反例库
+旧版源码不作为新项目代码基线。它保留的价值是：帮助我们识别哪些能力确实值得做，以及哪些“看起来工程化”的模块如果没有真实闭环会伤害体验。
+旧版观察
+v2 对应原则
+Graph 中真实 Router 与依赖注入没有完全闭环
+Stage 7 才做统一 Graph，并要求真实端到端验收。
+所有请求可能先依赖 BirthProfile
+Stage 7 / 11 改成 Route 后按 Agent 需求补资料。
+RAG ingestion / query 的 collection、metadata、embedding 契约可能不一致
+Stage 4 先冻结 KnowledgeChunk schema，再写 ingestion 与 retrieval。
+注释声称真太阳时，但经纬度没有真正参与算法
+v2.0 直接声明不做真太阳时，不制造“看起来支持”的能力。
+大量重试、熔断、Risk Matrix 先于真实业务稳定
+可靠性只在已经出现真实故障 / 上线需要时加入。
+
+附录 A｜技术选型依据（2026-09-02 检索）
+lunar_python：6tail/lunar-python README 与 demo：支持八字、五行、十神、大运等；当前仓库标记 Production/Stable。https://github.com/6tail/lunar-python
+ChatDeepSeek：LangChain 官方 DeepSeek 集成文档：Tool Calling、Structured Output、Streaming、Async 均支持。https://docs.langchain.com/oss/python/integrations/chat/deepseek
+DeepSeek Tool Calls：DeepSeek 官方 Tool Calls 文档：支持 function tools / strict schema 等。https://api-docs.deepseek.com/guides/tool_calls/
+高德 Geocoding：高德 Web Service 官方地理 / 逆地理编码 API；v2.0 暂不使用。https://lbs.amap.com/api/webservice/guide/api/georegeo
+ichingpy：IChingPy：支持多种起卦方法及 SixLinesDivinationEngine（京房六爻装卦）；解释功能仍标注 TODO。https://pypi.org/project/ichingpy/
+pgvector：pgvector：PostgreSQL 的向量相似度扩展，支持 exact / approximate NN 与 Python/SQLAlchemy。https://github.com/pgvector/pgvector
+bm25s：bm25s：Python BM25 检索库；用于 Sparse Retrieval，避免自研 BM25。https://pypi.org/project/bm25s/
+FlagEmbedding：BAAI FlagEmbedding：提供 BGE embedding / reranker 预训练模型。https://github.com/FlagOpen/FlagEmbedding
+LangGraph Interrupts：LangGraph 官方文档：interrupt + Command + checkpointer 用于 HITL 暂停 / 恢复。https://docs.langchain.com/oss/python/langgraph/interrupts
+LangGraph Persistence：LangGraph 官方文档：checkpointer / thread state 用于持久化、memory、fault tolerance。https://docs.langchain.com/oss/python/langgraph/persistence
+MCP Python SDK：Model Context Protocol 官方 Python SDK v2：支持 MCP server/client 与 Streamable HTTP。https://py.sdk.modelcontextprotocol.io/
+附录 B｜执行时的阶段检查模板
+Stage X 开始前[ ] 上一阶段所有 Gate 已通过[ ] 当前阶段任务列表未变化[ ] 依赖版本已锁定[ ] 本阶段测试范围已确认Stage X 结束时[ ] 所有固定任务已完成[ ] 所有“必须测试”已通过[ ] 非目标没有被偷偷实现[ ] 新想法已进入 v2.1 Backlog[ ] 产物 / ADR / README 已更新[ ] 我能够不用看代码解释本阶段的关键设计选择只有全部满足，才进入 Stage X+1。
+
+协作约定  从下一次开发开始，我们只处理“当前 Stage 的固定任务”。如果讨论中出现后续阶段概念，我会明确标记为“后续阶段，不在当前实现”，避免再次发生边做边扩展。

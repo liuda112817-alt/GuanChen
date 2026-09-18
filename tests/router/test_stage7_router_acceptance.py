@@ -6,7 +6,7 @@ from guanchen_v2.router.adapters.liuyao import LiuyaoInvocationResult
 from guanchen_v2.router.contracts import IntentType, RequiredDataType
 from guanchen_v2.router.core import HighPrecisionRuleRouter, RouterDecision, TwoLayerIntentRouter
 from guanchen_v2.router.dispatch import SingleAgentDispatcher
-from guanchen_v2.router.dual_dispatch import DualDomainDispatcher
+from guanchen_v2.router.dual_dispatch import AgentExecutionResult, DualDomainDispatcher
 from guanchen_v2.router.dual_requirements import check_dual_requirements
 from guanchen_v2.router.requirements import RequirementContext, RequirementStatus
 from guanchen_v2.router.synthesis import SynthesisInput
@@ -41,7 +41,7 @@ async def test_stage7_case1_explicit_dual_domain_happy_path(mock_adapters, mock_
     synthesizer = AgentSynthesizer(mock_llm)
 
     # 1. 路由
-    query = "结合我的八字和昨晚的梦一起看看"
+    query = "结合我的八字和昨晚的梦一起看吧"
     routing_result = await router.route(query)
     assert routing_result.primary_intent == IntentType.BAZI
     assert routing_result.secondary_intents == (IntentType.DREAM,)
@@ -60,16 +60,16 @@ async def test_stage7_case1_explicit_dual_domain_happy_path(mock_adapters, mock_
     synthesis_input = SynthesisInput(query=query, results=exec_results)
     await synthesizer.synthesize(synthesis_input)
 
-    # Synthesizer 发起了 LLM 调用合并结论
+    # Synthesizer 发起的 LLM 调用合并结论
     mock_llm.generate_structured.assert_awaited_once()
 
 
 @pytest.mark.asyncio
 async def test_stage7_case2_missing_data_rejects_dispatch(mock_adapters, mock_llm):
-    """Test 2: 资料缺失导致中断，绝不盲目派发 Agent"""
+    """Test 2: 资料缺失导致中断，绝不盲目派遣 Agent"""
     router = TwoLayerIntentRouter(HighPrecisionRuleRouter(), mock_llm)
 
-    routing_result = await router.route("结合我的八字和昨晚的梦一起看看")
+    routing_result = await router.route("结合我的八字和昨晚的梦一起看吧")
 
     # Context 中故意漏掉 DreamContent
     context = RequirementContext(available_data={RequiredDataType.BIRTH_PROFILE: "profile"})
@@ -106,7 +106,7 @@ async def test_stage7_case3_pseudo_dual_domain_isolated(mock_adapters, mock_llm)
     req = check_requirements(routing_result, context)
     await single_dispatch.dispatch(routing_result, req, query, context)
 
-    # 确保没有发生蔓延，Bazi Adapter 完全不知情
+    # 确保没有发生蔓延，Bazi Adapter 完全不知道
     assert mock_adapters[IntentType.DREAM].invoke.call_count == 1
     assert mock_adapters[IntentType.BAZI].invoke.call_count == 0
 
@@ -122,7 +122,6 @@ async def test_stage7_case4_liuyao_synthesizer_preserves_thread_id(mock_adapters
     )
     resolved = await __import__("asyncio").gather(*exec_results)
 
-    from guanchen_v2.router.dual_dispatch import AgentExecutionResult
 
     synthesis_input = SynthesisInput(
         query="结合八字看看要不要换工作",
@@ -137,7 +136,7 @@ async def test_stage7_case4_liuyao_synthesizer_preserves_thread_id(mock_adapters
     synthesizer_call_args = mock_llm.generate_structured.await_args.kwargs
     prompt_sent_to_llm = synthesizer_call_args["user_prompt"]
 
-    # 核心断言：大模型看到的必须是纯业务载荷，绝对不包含内部状态句柄 (test_tid)
+    # 核心断言：大模型看到的必须是纯业务载荷，绝对不包含内部状态句柄(test_tid)
     assert "[Liuyao Result]" in prompt_sent_to_llm
     assert "test_tid" not in prompt_sent_to_llm  # 防止内存越权泄漏
     assert "paused" in prompt_sent_to_llm

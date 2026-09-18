@@ -93,7 +93,7 @@ async def test_liuyao_adapter_preserves_resume_handle():
     first_result = await adapter.invoke("帮我起一卦", context)
 
     assert mock_graph.ainvoke.call_count == 1
-    assert first_result.thread_id.startswith("liuyao_adpt_")
+    assert first_result.thread_id.startswith("liuyao_thread_")
 
     # 第二次直接基于刚才截获的 thread_id 和外部构造的 payload 进行 resume 接力
     resumed_result = await adapter.resume(first_result.thread_id, {"action": "confirm"})
