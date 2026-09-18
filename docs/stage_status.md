@@ -383,9 +383,13 @@ Completed.
 当前验证结果：
 
 ```text
-默认套件：342 passed, 41 deselected
-集成套件（-m integration，含 Stage 8 Memory）：40 passed
+默认套件：358 passed, 43 deselected
+集成套件（-m integration，含 Stage 8 Memory）：42 passed
 静态检查：ruff check src tests scripts 通过（0 error）
+Stage 4 Retrieval：45 条评测，RRF Recall@5=0.9111；Reranker Gate 未通过，生产保持关闭
+Stage 4 Knowledge Agent：10/10 真实回答 citation lineage 通过
+Stage 7 Router：65 条 full-chain，primary / secondary accuracy 均 1.0
+Stage 8 应用验收：32 个真实入口场景，跨会话 Dream 隔离、六爻重启恢复、八字更正均通过
 ```
 
 测试数据库：`postgresql+asyncpg://postgres:postgres@localhost:5432/guanchen_test`（由 `tests/conftest.py` 的 `db_env` / `postgres_session_factory` fixture 管理建表与 teardown，含 checkpoint 表清理）。
@@ -393,8 +397,8 @@ Completed.
 ### Known Limitations
 
 - 进程级默认 engine 仍为单实例（多进程部署需各自初始化）；
-- checkpoint 序列化使用 langgraph 默认 serde，未启用严格 msgpack allowlist；
-- 测试与运行时均依赖本机 PostgreSQL 容器 `guanchen_eval_db`（localhost:5432）。
+- checkpoint 序列化使用 langgraph 默认 serde，运行时仍会提示未注册类型警告；严格 allowlist 留待后续安全专项处理；
+- 测试与运行时依赖 PostgreSQL；本次已用 `guanchen_eval_db`（localhost:5432）完成集成验收。
 
 
 ---
@@ -409,7 +413,7 @@ The following items are tracked separately:
 | Citation Protocol Unification | P0 | Stage 6 已实现证据校验；全链路对齐待 Stage 11 |
 | State Model Separation | P0 | Stage 8 已拆分会话状态与领域记忆（conversation_states vs 域表） |
 | Memory Schema Freeze | P0 | Stage 8 已冻结（`memory/models.py` + `create_memory_tables.py`） |
-| Orchestrator Refactor | P0 | Stage 8 已接入 MemorySelector；职责进一步收敛待 Stage 11 |
+| Orchestrator Refactor | P0 | Stage 8 已接入 ConversationGraph、MemorySelector 与真实应用工厂；后续 Web 层只做 API 适配 |
 
 
 ---

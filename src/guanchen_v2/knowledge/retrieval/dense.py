@@ -38,8 +38,10 @@ class DenseRetriever:
     def __init__(
         self,
         embedding_adapter: BgeEmbeddingAdapter,
+        session_factory=None,
     ) -> None:
         self._embedding_adapter = embedding_adapter
+        self._session_factory = session_factory or async_session
 
     async def search(
         self,
@@ -53,7 +55,7 @@ class DenseRetriever:
         query_vector = self._embedding_adapter.embed_query(query=query)
 
         try:
-            async with async_session() as session:
+            async with self._session_factory() as session:
                 distance = KnowledgeChunkRow.embedding.cosine_distance(query_vector)
 
                 stmt = select(

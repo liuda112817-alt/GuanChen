@@ -58,6 +58,9 @@ async def test_stage7_case1_explicit_dual_domain_happy_path(mock_adapters, mock_
 
     # 4. 汇总
     synthesis_input = SynthesisInput(query=query, results=exec_results)
+    from guanchen_v2.router.synthesis import SynthesizedResponse
+
+    mock_llm.generate_structured.return_value = SynthesizedResponse(content="合并结果", used_intents=())
     await synthesizer.synthesize(synthesis_input)
 
     # Synthesizer 发起的 LLM 调用合并结论
@@ -122,7 +125,6 @@ async def test_stage7_case4_liuyao_synthesizer_preserves_thread_id(mock_adapters
     )
     resolved = await __import__("asyncio").gather(*exec_results)
 
-
     synthesis_input = SynthesisInput(
         query="结合八字看看要不要换工作",
         results=(
@@ -131,6 +133,9 @@ async def test_stage7_case4_liuyao_synthesizer_preserves_thread_id(mock_adapters
         ),
     )
 
+    from guanchen_v2.router.synthesis import SynthesizedResponse
+
+    mock_llm.generate_structured.return_value = SynthesizedResponse(content="合并结果", used_intents=())
     await synthesizer.synthesize(synthesis_input)
 
     synthesizer_call_args = mock_llm.generate_structured.await_args.kwargs

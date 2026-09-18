@@ -198,10 +198,13 @@ User Request
 ### 验证状态
 
 ```text
-默认套件：342 passed, 41 deselected
-集成套件（-m integration，含 Stage 8 Memory）：40 passed
+默认套件：358 passed, 43 deselected
+集成套件（-m integration，含 Stage 8 Memory）：42 passed
 静态检查：ruff check src tests scripts 通过
-Stage 7 路由 Eval（rules-only）：黄金集 65 条，规则层命中 56/65、准确率 100%
+Stage 7 路由 Eval（full-chain）：黄金集 65 条，primary / secondary accuracy 均 100%
+Stage 4 Retrieval Eval：45 条，RRF Recall@5=0.9111；reranker 未通过 Gate，生产保持关闭
+Stage 4 Knowledge Agent：10/10 真实回答 citation lineage 通过
+Stage 8 应用验收：32 个真实入口场景通过
 ```
 
 ### 尚未实现（目标架构，后续 Stage）
@@ -238,4 +241,4 @@ Stage 7 路由 Eval（rules-only）：黄金集 65 条，规则层命中 56/65�
 4. 新想法进入 v2.1 Backlog；
 5. 只有正确性、安全性或不可运行的阻塞问题可以触发最小方案变更，并记录 ADR。
 
-当前 Stage 9（MCP Standardization）尚未开始，等待 Stage 8 Gate 评审确认。
+当前 Stage 9（MCP Standardization）尚未开始；Stage 8 Gate 已通过，可进入 Stage 9。

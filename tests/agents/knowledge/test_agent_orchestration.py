@@ -54,7 +54,7 @@ async def test_retrieval_service_propagates_filters():
     mock_sparse = MagicMock(spec=SparseRetriever)
 
     mock_dense.search = AsyncMock(return_value=[])
-    mock_sparse.search = AsyncMock(return_value=[])
+    mock_sparse.search = MagicMock(return_value=[])
 
     mock_rrf = MagicMock()
     mock_reranker = MagicMock()

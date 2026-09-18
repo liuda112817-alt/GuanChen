@@ -27,7 +27,8 @@ class SparseRetriever:
     4. 采用一致的平局打破机制 (score DESC, chunk_id ASC)。
     """
 
-    def __init__(self):
+    def __init__(self, session_factory=None):
+        self._session_factory = session_factory or async_session
         self._is_initialized = False
         self._chunk_snapshots: list[SparseIndexEntry] = []
         self._bm25_index: Any = None
@@ -49,7 +50,7 @@ class SparseRetriever:
         返回：成功索引的块数量。
         """
         try:
-            async with async_session() as session:
+            async with self._session_factory() as session:
                 stmt = select(
                     KnowledgeChunkRow.chunk_id,
                     KnowledgeChunkRow.document_id,

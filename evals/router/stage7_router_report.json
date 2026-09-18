@@ -1,52 +1,23 @@
 {
   "frozen_contract": "Stage 7 Router Eval",
+  "mode": "full_chain",
   "accuracy_gate": 0.92,
-  "mode": "rules_only",
   "total": 65,
-  "correct": 56,
+  "evaluated": 65,
+  "correct": 65,
   "accuracy": 1.0,
-  "per_intent": {
-    "bazi": {
-      "total": 19,
-      "correct": 15,
-      "rule_hit": 15,
-      "llm_fallback": 4
-    },
-    "dream": {
-      "total": 13,
-      "correct": 12,
-      "rule_hit": 12,
-      "llm_fallback": 1
-    },
-    "liuyao": {
-      "total": 11,
-      "correct": 9,
-      "rule_hit": 9,
-      "llm_fallback": 2
-    },
-    "knowledge": {
-      "total": 10,
-      "correct": 8,
-      "rule_hit": 8,
-      "llm_fallback": 2
-    },
-    "chitchat": {
-      "total": 6,
-      "correct": 6,
-      "rule_hit": 6,
-      "llm_fallback": 0
-    },
-    "out_of_scope": {
-      "total": 6,
-      "correct": 6,
-      "rule_hit": 6,
-      "llm_fallback": 0
-    }
-  },
+  "secondary_accuracy": 1.0,
+  "rule_covered": 56,
+  "rule_coverage": 0.8615384615384616,
+  "rule_layer_accuracy": null,
+  "llm_fallback_needed": 9,
   "checks": {
+    "full_chain": true,
     "golden_size_ok": true,
+    "six_intents_ok": true,
     "dual_or_ambiguous_ok": true,
-    "rule_layer_accuracy_ok": true,
+    "all_evaluated": true,
+    "accuracy_ok": true,
     "no_birth_profile_violation": true
   },
   "passed": true,
@@ -54,63 +25,699 @@
     "checked": true,
     "violations": []
   },
-  "rule_covered": 56,
-  "llm_fallback_needed": 9,
-  "llm_fallback_list": [
+  "failures": [],
+  "predictions": [
+    {
+      "id": "bazi_01",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "bazi_02",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "bazi_03",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "bazi_04",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "bazi_05",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "bazi_06",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "bazi_07",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "bazi_08",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dream_01",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dream_02",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dream_03",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dream_04",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dream_05",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dream_06",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dream_07",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dream_08",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "liuyao_01",
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "liuyao_02",
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "liuyao_03",
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "liuyao_04",
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "liuyao_05",
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "liuyao_06",
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "liuyao_07",
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "liuyao_08",
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "knowledge_01",
+      "status": "evaluated",
+      "primary_intent": "knowledge",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "knowledge_02",
+      "status": "evaluated",
+      "primary_intent": "knowledge",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "knowledge_03",
+      "status": "evaluated",
+      "primary_intent": "knowledge",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "knowledge_04",
+      "status": "evaluated",
+      "primary_intent": "knowledge",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "knowledge_05",
+      "status": "evaluated",
+      "primary_intent": "knowledge",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "knowledge_06",
+      "status": "evaluated",
+      "primary_intent": "knowledge",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "knowledge_07",
+      "status": "evaluated",
+      "primary_intent": "knowledge",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "knowledge_08",
+      "status": "evaluated",
+      "primary_intent": "knowledge",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "chitchat_01",
+      "status": "evaluated",
+      "primary_intent": "chitchat",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "chitchat_02",
+      "status": "evaluated",
+      "primary_intent": "chitchat",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "chitchat_03",
+      "status": "evaluated",
+      "primary_intent": "chitchat",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "chitchat_04",
+      "status": "evaluated",
+      "primary_intent": "chitchat",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "chitchat_05",
+      "status": "evaluated",
+      "primary_intent": "chitchat",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "chitchat_06",
+      "status": "evaluated",
+      "primary_intent": "chitchat",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "oos_01",
+      "status": "evaluated",
+      "primary_intent": "out_of_scope",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "oos_02",
+      "status": "evaluated",
+      "primary_intent": "out_of_scope",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "oos_03",
+      "status": "evaluated",
+      "primary_intent": "out_of_scope",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "oos_04",
+      "status": "evaluated",
+      "primary_intent": "out_of_scope",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "oos_05",
+      "status": "evaluated",
+      "primary_intent": "out_of_scope",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "oos_06",
+      "status": "evaluated",
+      "primary_intent": "out_of_scope",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dual_01",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [
+        "dream"
+      ],
+      "required_data": [
+        "birth_profile",
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dual_02",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [
+        "dream"
+      ],
+      "required_data": [
+        "birth_profile",
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dual_03",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [
+        "dream"
+      ],
+      "required_data": [
+        "birth_profile",
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dual_04",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [
+        "dream"
+      ],
+      "required_data": [
+        "birth_profile",
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dual_05",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [
+        "dream"
+      ],
+      "required_data": [
+        "birth_profile",
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "dual_06",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [
+        "dream"
+      ],
+      "required_data": [
+        "birth_profile",
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
     {
       "id": "ambiguous_01",
-      "query": "我昨晚做噩梦了，睡得很差",
-      "expected_primary": "dream",
-      "expected_secondary": []
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "ambiguous_02",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "ambiguous_03",
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
     },
     {
       "id": "ambiguous_04",
-      "query": "我总觉得最近运气不好，帮我看看",
-      "expected_primary": "bazi",
-      "expected_secondary": []
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
     },
     {
       "id": "ambiguous_05",
-      "query": "最近在纠结要不要跳槽，想听听建议",
-      "expected_primary": "liuyao",
-      "expected_secondary": []
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
     },
     {
       "id": "ambiguous_06",
-      "query": "我和对象总是吵架，该不该继续",
-      "expected_primary": "liuyao",
-      "expected_secondary": []
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
     },
     {
       "id": "ambiguous_07",
-      "query": "五行缺金的人要注意什么",
-      "expected_primary": "knowledge",
-      "expected_secondary": []
+      "status": "evaluated",
+      "primary_intent": "knowledge",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "ambiguous_08",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
     },
     {
       "id": "ambiguous_09",
-      "query": "这个月适合做重要决定吗",
-      "expected_primary": "bazi",
-      "expected_secondary": []
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "ambiguous_10",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
     },
     {
       "id": "ambiguous_11",
-      "query": "帮我看看这段时间的运势变化",
-      "expected_primary": "bazi",
-      "expected_secondary": []
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "ambiguous_12",
+      "status": "evaluated",
+      "primary_intent": "liuyao",
+      "secondary_intents": [],
+      "required_data": [
+        "decision_question"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
     },
     {
       "id": "ambiguous_13",
-      "query": "想了解一下传统命理的基本框架",
-      "expected_primary": "knowledge",
-      "expected_secondary": []
+      "status": "evaluated",
+      "primary_intent": "knowledge",
+      "secondary_intents": [],
+      "required_data": [],
+      "primary_correct": true,
+      "secondary_correct": true
+    },
+    {
+      "id": "ambiguous_14",
+      "status": "evaluated",
+      "primary_intent": "dream",
+      "secondary_intents": [],
+      "required_data": [
+        "dream_content"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
     },
     {
       "id": "ambiguous_15",
-      "query": "我感觉我的运势到了一个转折点",
-      "expected_primary": "bazi",
-      "expected_secondary": []
+      "status": "evaluated",
+      "primary_intent": "bazi",
+      "secondary_intents": [],
+      "required_data": [
+        "birth_profile"
+      ],
+      "primary_correct": true,
+      "secondary_correct": true
     }
   ],
-  "failures": []
+  "model": "deepseek-v4-flash",
+  "timestamp": "2026-09-18T08:57:52.714232+00:00",
+  "base_commit": "a5cab12e20cc4477a649d09be0fc1be554d7f469"
 }

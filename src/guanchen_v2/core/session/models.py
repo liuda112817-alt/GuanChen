@@ -9,6 +9,7 @@ from guanchen_v2.core.session.validators import (
     validate_namespace_isolation,
 )
 from guanchen_v2.router.contracts import RoutingResult
+from guanchen_v2.router.dual_requirements import DualRequirementCheckResult
 from guanchen_v2.router.requirements import RequirementCheckResult
 
 
@@ -26,7 +27,7 @@ class MessageState(BaseModel):
         if v not in {"user", "assistant", "system"}:
             raise ValueError("Message role 必须是 user, assistant 或 system")
         return v
-    
+
     @model_validator(mode="after")
     def validate_runtime_objects(self) -> "MessageState":
         validate_json_serializable(self.metadata, path="MessageState.metadata")
@@ -45,7 +46,7 @@ class SessionMetadata(BaseModel):
     def validate_rules(self) -> "SessionMetadata":
         if "user_personality" in self.extra or "user_preference_prediction" in self.extra:
             raise ValueError("禁止在 metadata 保存 user_personality 或 user_preference_prediction 等用户画像预测信息")
-        
+
         validate_json_serializable(self.extra, path="SessionMetadata.extra")
         return self
 
@@ -85,17 +86,19 @@ class AgentStateContainer(BaseModel):
 
 class ConversationState(BaseModel):
     """一个用户 session 在生命周期内为 Application Layer 保存恢复所需状态的统一容器"""
+
     model_config = ConfigDict(extra="forbid")
 
     session_id: str = Field(min_length=1)
     status: SessionStatus = SessionStatus.ACTIVE
     messages: list[MessageState] = Field(default_factory=list)
     current_query: str | None = None
-    
+
     routing_result: RoutingResult | None = None
-    requirement_result: RequirementCheckResult | None = None
-    
+    requirement_result: RequirementCheckResult | DualRequirementCheckResult | None = None
+
     agent_states: AgentStateContainer = Field(default_factory=AgentStateContainer)
     pending_interrupt: PendingInterrupt | None = None
+    pending_query: str | None = None
+    birth_data: dict[str, Any] = Field(default_factory=dict)
     metadata: SessionMetadata = Field(default_factory=SessionMetadata)
-

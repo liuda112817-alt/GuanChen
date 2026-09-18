@@ -17,7 +17,10 @@ class BgeRerankerAdapter:
 
     MODEL_NAME = "BAAI/bge-reranker-base"
 
-    def __init__(self):
+    def __init__(self, batch_size: int = 4):
+        if batch_size < 1:
+            raise ValueError("batch_size 必须大于零")
+        self._batch_size = batch_size
         self._model = None
 
     def _get_model(self):
@@ -25,7 +28,7 @@ class BgeRerankerAdapter:
             return self._model
 
         try:
-            self._model = CrossEncoder(self.MODEL_NAME, default_activation_function=nn.Identity())
+            self._model = CrossEncoder(self.MODEL_NAME, activation_fn=nn.Identity())
             return self._model
         except Exception as exc:
             raise KnowledgeRerankerError(f"无法加载重排模型 {self.MODEL_NAME}。请检查网络或本地缓存。") from exc
@@ -41,7 +44,7 @@ class BgeRerankerAdapter:
         model = self._get_model()
 
         try:
-            raw_scores = model.predict(pairs)
+            raw_scores = model.predict(pairs, batch_size=self._batch_size, show_progress_bar=False)
         except Exception as exc:
             raise KnowledgeRerankerError("重排模型推理崩溃。") from exc
 

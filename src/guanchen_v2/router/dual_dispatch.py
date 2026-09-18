@@ -1,5 +1,9 @@
+import operator
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Annotated, Any, Mapping, TypedDict
+
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Send
 
 from guanchen_v2.router.contracts import IntentType, RoutingResult
 from guanchen_v2.router.dispatch import AgentAdapter
@@ -18,6 +22,7 @@ class AgentExecutionResult:
     intent: IntentType
 
     output: object
+
 
 class DualDomainDispatcher:
     def __init__(self, registry: Mapping[IntentType, AgentAdapter]):
@@ -46,26 +51,31 @@ class DualDomainDispatcher:
         secondary_adapter = self._registry.get(secondary_intent)
 
         if primary_adapter is None or secondary_adapter is None:
-            missing = (
-                primary_intent.value
-                if primary_adapter is None
-                else secondary_intent.value
-            )
+            missing = primary_intent.value if primary_adapter is None else secondary_intent.value
             raise RouterDispatchError(f"缺少处理 {missing} 的 AgentAdapter")
 
-        # 严格串行执行；仅在显式提供 Agent State 时透传（保持协议默认参数语义）
-        if primary_agent_state is None:
-            primary_output = await primary_adapter.invoke(query, context)
-        else:
-            primary_output = await primary_adapter.invoke(query, context, primary_agent_state)
+        # Two bounded Send tasks, with reducer-based fan-in. Results retain route order.
+        class FanoutState(TypedDict):
+            results: Annotated[list[AgentExecutionResult], operator.add]
 
-        if secondary_agent_state is None:
-            secondary_output = await secondary_adapter.invoke(query, context)
-        else:
-            secondary_output = await secondary_adapter.invoke(query, context, secondary_agent_state)
+        async def execute_agent(task):
+            adapter = self._registry[task["intent"]]
+            if task["agent_state"] is None:
+                output = await adapter.invoke(query, context)
+            else:
+                output = await adapter.invoke(query, context, task["agent_state"])
+            return {"results": [AgentExecutionResult(intent=task["intent"], output=output)]}
 
-        return (
-            AgentExecutionResult(intent=primary_intent, output=primary_output),
-            AgentExecutionResult(intent=secondary_intent, output=secondary_output),
-        )
+        def fanout(_):
+            return [
+                Send("agent", {"intent": primary_intent, "agent_state": primary_agent_state}),
+                Send("agent", {"intent": secondary_intent, "agent_state": secondary_agent_state}),
+            ]
 
+        builder = StateGraph(FanoutState)
+        builder.add_node("agent", execute_agent)
+        builder.add_conditional_edges(START, fanout)
+        builder.add_edge("agent", END)
+        result = await builder.compile().ainvoke({"results": []}, {"recursion_limit": 4})
+        by_intent = {item.intent: item for item in result["results"]}
+        return by_intent[primary_intent], by_intent[secondary_intent]

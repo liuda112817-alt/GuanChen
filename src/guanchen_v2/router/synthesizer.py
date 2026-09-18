@@ -1,6 +1,11 @@
+from guanchen_v2.dream.runtime import DreamAgentResult
 from guanchen_v2.llm.client import LLMClient
+from guanchen_v2.router.adapters.liuyao import LiuyaoInvocationResult
+from guanchen_v2.router.contracts import IntentType
+from guanchen_v2.router.dual_requirements import DualRequirementCheckResult
 from guanchen_v2.router.output_formatter import format_agent_result
-from guanchen_v2.router.synthesis import SynthesisInput, SynthesizedResponse
+from guanchen_v2.router.requirements import RequirementCheckResult, RequirementStatus
+from guanchen_v2.router.synthesis import SynthesisDraft, SynthesisInput, SynthesizedResponse
 
 SYNTHESIZER_PROMPT = """
 你是系统中的结果整理器（Synthesizer）。
@@ -123,14 +128,88 @@ class AgentSynthesizer:
         self._llm_client = llm_client
 
     async def synthesize(self, synthesis_input: SynthesisInput) -> SynthesizedResponse:
+        # Single-domain results retain their validated facts/citations without another LLM.
+        if len(synthesis_input.results) == 1:
+            result = synthesis_input.results[0]
+            output = result.output
+            intents = (result.intent,)
+            if isinstance(output, (RequirementCheckResult, DualRequirementCheckResult)):
+                if output.status == RequirementStatus.BYPASS:
+                    content = (
+                        "你好，我可以帮助你了解传统文化、八字、梦境和六爻决策反思。"
+                        if result.intent == IntentType.CHITCHAT
+                        else "这个请求超出当前传统文化服务范围。"
+                    )
+                    return SynthesizedResponse(content=content, used_intents=())
+                return SynthesizedResponse(
+                    content="请补充资料：" + "、".join(x.value for x in output.missing_data), status="needs_input", used_intents=intents
+                )
+            if isinstance(output, LiuyaoInvocationResult):
+                values = output.output
+                if not isinstance(values, dict):
+                    values = {"final_response": str(values)}
+                question = values.get("question")
+                status = getattr(question, "status", None)
+                interrupts = values.get("__interrupt__", ())
+                if interrupts:
+                    content = "请确认是否起卦：" + str(getattr(question, "clarified_question", ""))
+                    response_status = "interrupted"
+                elif str(status) == "cancelled":
+                    content, response_status = "本次起卦已取消。", "cancelled"
+                else:
+                    content = values.get("final_response") or values.get("clarification") or "请继续补充决策问题。"
+                    response_status = "answered" if values.get("final_response") else "needs_input"
+                hexagram = values.get("hexagram")
+                if hexagram is not None and response_status == "answered":
+                    content = (
+                        "起卦方式："
+                        + hexagram.casting_method.value
+                        + "；爻值（自下而上）："
+                        + ", ".join(str(x.value.value) for x in hexagram.lines)
+                        + "\n\n"
+                        + content
+                    )
+                return SynthesizedResponse(
+                    content=content,
+                    used_intents=intents,
+                    thread_id=output.thread_id,
+                    status=response_status,
+                    citations=tuple(values.get("citations", ())),
+                )
+            if isinstance(output, DreamAgentResult):
+                content = output.clarification_question or (
+                    "【传统文化象征】\n" + output.response.traditional_view + "\n\n【心理与现实情境】\n" + output.response.psychological_context_view
+                )
+                return SynthesizedResponse(content=content, used_intents=intents, status=output.status.value, citations=tuple(output.citations))
+            content = getattr(output, "answer", None) or getattr(output, "content", None)
+            if content is not None:
+                facts = output.chart.model_dump(mode="json") if hasattr(output, "chart") else {}
+                return SynthesizedResponse(content=content, used_intents=intents, citations=tuple(getattr(output, "citations", ())), facts=facts)
+        if len(synthesis_input.results) == 2:
+            workflow = next((r for r in synthesis_input.results if isinstance(r.output, LiuyaoInvocationResult)), None)
+            if workflow is not None:
+                projected = await self.synthesize(SynthesisInput(query=synthesis_input.query, results=(workflow,)))
+                if projected.status != "answered":
+                    other = next(r for r in synthesis_input.results if r is not workflow)
+                    other_response = await self.synthesize(SynthesisInput(query=synthesis_input.query, results=(other,)))
+                    return projected.model_copy(
+                        update={
+                            "content": other_response.content + "\n\n" + projected.content,
+                            "used_intents": tuple(r.intent for r in synthesis_input.results),
+                            "citations": (*other_response.citations, *projected.citations),
+                        }
+                    )
         formatted_blocks = []
         for res in synthesis_input.results:
             formatted_blocks.append(f"=== {res.intent.value} Agent Result ===\n{format_agent_result(res)}")
 
         user_prompt = f"用户原始问题: {synthesis_input.query}\n\nAgent 产出结果:\n" + "\n\n".join(formatted_blocks)
 
-        return await self._llm_client.generate_structured(
+        response = await self._llm_client.generate_structured(
             system_prompt=SYNTHESIZER_PROMPT,
             user_prompt=user_prompt,
-            schema=SynthesizedResponse,
+            schema=SynthesisDraft,
         )
+
+        citations = tuple(c for r in synthesis_input.results for c in getattr(r.output, "citations", ()))
+        return SynthesizedResponse(content=response.content, used_intents=tuple(r.intent for r in synthesis_input.results), citations=citations)

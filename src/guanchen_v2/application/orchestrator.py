@@ -1,154 +1,231 @@
 import json
 import uuid
+from typing import Any, TypedDict
 
-from guanchen_v2.application.exceptions import (
-    ConversationExecutionError,
-    SessionInitializationError,
-    StateUpdateError,
-)
-from guanchen_v2.core.session.models import ConversationState, MessageState
-from guanchen_v2.memory.selector import MemorySelector
-from guanchen_v2.memory.store import MemoryStore
+from langgraph.graph import END, START, StateGraph
+
+from guanchen_v2.agents.bazi.models import BaziAgentInput, BaziBirthDataPatch, ReadyForBazi
+from guanchen_v2.agents.bazi.requirements import check_bazi_requirements
+from guanchen_v2.application.exceptions import ConversationExecutionError, SessionInitializationError, StateUpdateError
+from guanchen_v2.core.session.models import ConversationState, MessageState, PendingInterrupt
 from guanchen_v2.router.contracts import IntentType, RequiredDataType
-from guanchen_v2.router.core import TwoLayerIntentRouter
-from guanchen_v2.router.dispatch import SingleAgentDispatcher
-from guanchen_v2.router.dual_dispatch import AgentExecutionResult, DualDomainDispatcher
+from guanchen_v2.router.core import HighPrecisionRuleRouter, RouterDecision, TwoLayerIntentRouter, build_routing_result
+from guanchen_v2.router.dual_dispatch import AgentExecutionResult
 from guanchen_v2.router.dual_requirements import check_dual_requirements
 from guanchen_v2.router.requirements import RequirementContext, RequirementStatus, check_requirements
 from guanchen_v2.router.synthesis import SynthesisInput, SynthesizedResponse
-from guanchen_v2.router.synthesizer import AgentSynthesizer
+
+
+class TurnState(TypedDict, total=False):
+    conversation: ConversationState
+    query: str
+    task_query: str
+    birth_patch: BaziBirthDataPatch | None
+    new_task: bool
+    context: RequirementContext
+    results: tuple[AgentExecutionResult, ...]
+    response: SynthesizedResponse
 
 
 class ConversationOrchestrator:
-    def __init__(
-        self,
-        memory_store: MemoryStore,
-        router: TwoLayerIntentRouter,
-        single_dispatcher: SingleAgentDispatcher,
-        dual_dispatcher: DualDomainDispatcher,
-        synthesizer: AgentSynthesizer,
-        memory_selector: MemorySelector | None = None,
-    ):
+    """Bounded ConversationGraph; only domain state survives between turns."""
+
+    def __init__(self, memory_store, router, single_dispatcher, dual_dispatcher, synthesizer, memory_selector=None):
         self._memory_store = memory_store
         self._router = router
         self._single_dispatcher = single_dispatcher
         self._dual_dispatcher = dual_dispatcher
         self._synthesizer = synthesizer
         self._memory_selector = memory_selector
+        builder = StateGraph(TurnState)
+        nodes = [
+            ("route", self._route),
+            ("requirements", self._requirements),
+            ("agents", self._agents),
+            ("response", self._response),
+            ("persist", self._persist),
+        ]
+        previous = START
+        for name, node in nodes:
+            builder.add_node(name, node)
+            builder.add_edge(previous, name)
+            previous = name
+        builder.add_edge(previous, END)
+        self.graph = builder.compile()
 
-    async def execute(self, session_id: str | None, user_query: str) -> SynthesizedResponse:
-        # 1. Session Lifecycle Initialization
+    async def execute(
+        self, session_id: str | None, user_query: str, *, birth_patch: BaziBirthDataPatch | dict | None = None, new_task: bool = False
+    ) -> SynthesizedResponse:
+        if not user_query.strip():
+            raise ValueError("用户输入不能为空")
+        patch = BaziBirthDataPatch.model_validate(birth_patch) if birth_patch is not None else None
+        session_id = session_id or str(uuid.uuid4())
         try:
-            if session_id:
-                state = await self._memory_store.load(session_id)
-                if not state:
-                    # 不存在则默认自然创建，保证用户体验
-                    state = ConversationState(session_id=session_id)
-                    await self._memory_store.save(state)
-            else:
-                session_id = str(uuid.uuid4())
+            state = await self._memory_store.load(session_id)
+            if state is None:
                 state = ConversationState(session_id=session_id)
                 await self._memory_store.save(state)
         except Exception as exc:
-            raise SessionInitializationError(f"Session {session_id} 初始化失败。") from exc
-
+            raise SessionInitializationError("会话初始化失败") from exc
+        state.current_query = user_query
+        state.messages.append(MessageState(role="user", content=user_query))
         try:
-            # 2. Append User Message
-            state.current_query = user_query
-            state.messages.append(MessageState(role="user", content=user_query))
-
-            # 3. Routing
-            routing_result = await self._router.route(user_query)
-            state.routing_result = routing_result
-
-            # 4. Requirement Check
-            # Stage 8：通过 Memory Selector 按领域注入长期记忆（只注入当前领域命名空间），
-            # 不把全历史无脑塞给模型。
-            if self._memory_selector is not None:
-                await self._memory_selector.ensure_user(session_id)
-                req_context = await self._memory_selector.select_for_intent(
-                    routing_result.primary_intent,
-                    session_id,
-                )
-            else:
-                req_context = RequirementContext(available_data={})
-
-            if routing_result.secondary_intents:
-                req_result = check_dual_requirements(routing_result, req_context)
-            else:
-                req_result = check_requirements(routing_result, req_context)
-            
-            state.requirement_result = req_result
-
-            # 5. Dispatching 调度
-            if req_result.status in {RequirementStatus.NEEDS_INPUT, RequirementStatus.BYPASS}:
-                results = (AgentExecutionResult(intent=routing_result.primary_intent, output=req_result),)
-            else:
-                if routing_result.secondary_intents:
-                    primary_state = getattr(state.agent_states, routing_result.primary_intent.value, {})
-                    secondary_state = getattr(state.agent_states, routing_result.secondary_intents[0].value, {})
-                    results = await self._dual_dispatcher.dispatch(
-                        routing_result, user_query, req_context, primary_state, secondary_state
-                    )
-                else:
-                    agent_state = getattr(state.agent_states, routing_result.primary_intent.value, {})
-                    out = await self._single_dispatcher.dispatch(
-                        routing_result, req_result, user_query, req_context, agent_state
-                    )
-                    results = (AgentExecutionResult(intent=routing_result.primary_intent, output=out),)
-
+            result = await self.graph.ainvoke(
+                {"conversation": state, "query": user_query, "birth_patch": patch, "new_task": new_task},
+                {"recursion_limit": 8},
+            )
+            return result["response"]
+        except (StateUpdateError, ConversationExecutionError):
+            raise
         except Exception as exc:
             raise ConversationExecutionError("Orchestrator 调度执行期间发生系统错误。") from exc
 
-        # 7. Memory Write（仅写入用户明确提供 / 确认的结构化资料）
-        # 八字执行成功后，将本次使用的出生资料持久化为长期记忆，
-        # 使后续轮次 / 重启后无需重复询问。
+    async def _route(self, turn: TurnState) -> dict:
+        state, query = turn["conversation"], turn["query"]
+        previous = state.routing_result
+        explicit = HighPrecisionRuleRouter().match(query)
+        continuing = (
+            previous is not None
+            and not turn["new_task"]
+            and (
+                (turn["birth_patch"] is not None and state.pending_query is not None)
+                or (explicit is None and (state.pending_interrupt is not None or state.pending_query is not None))
+                or (explicit is None and query.strip() in {"然后呢", "然后呢？", "继续", "再讲细一点"})
+            )
+        )
+        if continuing and state.pending_interrupt is not None:
+            # Resume only the waiting workflow, not every Agent from its original dual route.
+            routing = build_routing_result(RouterDecision(primary_intent=IntentType.LIUYAO, confidence=1, reason="继续待确认任务"))
+        elif continuing:
+            routing = previous
+        elif explicit is not None and isinstance(self._router, TwoLayerIntentRouter):
+            routing = build_routing_result(explicit)
+        else:
+            routing = await self._router.route(query)
+        task_query = state.pending_query if continuing and state.pending_query else query
+        if continuing and routing.primary_intent in {IntentType.BAZI, IntentType.KNOWLEDGE} and not state.pending_query:
+            prior = getattr(state.agent_states, routing.primary_intent.value).get("task_query")
+            if prior:
+                task_query = prior
+        if turn["new_task"]:
+            state.agent_states.liuyao.clear()
+        if not continuing:
+            state.pending_query = None
+            state.pending_interrupt = None
+        state.routing_result = routing
+        return {"conversation": state, "task_query": task_query}
+
+    async def _requirements(self, turn: TurnState) -> dict:
+        state = turn["conversation"]
+        routing = state.routing_result
+        intents = (routing.primary_intent, *routing.secondary_intents)
+        available: dict[RequiredDataType, Any] = {}
+        if self._memory_selector is not None:
+            await self._memory_selector.ensure_user(state.session_id)
+            for intent in intents:
+                selected = await self._memory_selector.select_for_intent(intent, state.session_id)
+                available.update(selected.available_data)
+        if IntentType.DREAM in intents:
+            available[RequiredDataType.DREAM_CONTENT] = turn["task_query"] if turn["birth_patch"] is not None else turn["query"]
+        if IntentType.LIUYAO in intents:
+            if state.agent_states.liuyao.get("status") in {"INTERRUPTED", "WAITING_INPUT"}:
+                available.setdefault(RequiredDataType.DECISION_QUESTION, "继续当前决策")
+            if turn["query"].strip().lower() not in {"确认", "取消", "confirm", "cancel", "yes", "no"}:
+                available[RequiredDataType.DECISION_QUESTION] = turn["query"]
+        if IntentType.BAZI in intents:
+            stored = available.get(RequiredDataType.BIRTH_PROFILE)
+            fields = dict(state.birth_data)
+            if stored is not None:
+                fields.update({key: value for key, value in stored.model_dump().items() if key in BaziBirthDataPatch.model_fields})
+                if state.pending_query and state.requirement_result and state.requirement_result.status == RequirementStatus.NEEDS_INPUT:
+                    fields.update(state.birth_data)
+            if turn["birth_patch"] is not None:
+                fields.update(turn["birth_patch"].model_dump(exclude_unset=True))
+            fields = {key: value for key, value in fields.items() if key in BaziBirthDataPatch.model_fields}
+            state.birth_data = fields
+            checked = check_bazi_requirements(BaziAgentInput(question=turn["task_query"], **fields))
+            if isinstance(checked, ReadyForBazi):
+                available[RequiredDataType.BIRTH_PROFILE] = checked.profile
+            else:
+                available.pop(RequiredDataType.BIRTH_PROFILE, None)
+                state.agent_states.bazi["input_requirement"] = checked.model_dump(mode="json")
+        context = RequirementContext(available_data=available)
+        state.requirement_result = check_dual_requirements(routing, context) if routing.secondary_intents else check_requirements(routing, context)
+        if state.requirement_result.status == RequirementStatus.NEEDS_INPUT:
+            state.pending_query = turn["task_query"]
+        return {"conversation": state, "context": context}
+
+    async def _agents(self, turn: TurnState) -> dict:
+        state, context = turn["conversation"], turn["context"]
+        routing, requirement = state.routing_result, state.requirement_result
+        if requirement.status != RequirementStatus.READY:
+            results = (AgentExecutionResult(intent=routing.primary_intent, output=requirement),)
+        elif routing.secondary_intents:
+            results = await self._dual_dispatcher.dispatch(
+                routing,
+                turn["task_query"],
+                context,
+                getattr(state.agent_states, routing.primary_intent.value),
+                getattr(state.agent_states, routing.secondary_intents[0].value),
+            )
+        else:
+            output = await self._single_dispatcher.dispatch(
+                routing,
+                requirement,
+                turn["task_query"] if routing.primary_intent in {IntentType.BAZI, IntentType.KNOWLEDGE} else turn["query"],
+                context,
+                getattr(state.agent_states, routing.primary_intent.value, {}),
+            )
+            results = (AgentExecutionResult(intent=routing.primary_intent, output=output),)
+        if requirement.status == RequirementStatus.READY:
+            state.pending_query = None
+        self._update_agent_states(state, results)
+        if requirement.status == RequirementStatus.READY:
+            for item in results:
+                getattr(state.agent_states, item.intent.value)["task_query"] = turn["task_query"]
+        liuyao = state.agent_states.liuyao
+        if any(item.intent == IntentType.LIUYAO for item in results) and liuyao.get("status") in {"INTERRUPTED", "WAITING_INPUT"}:
+            state.pending_interrupt = PendingInterrupt(agent="liuyao", interrupt_type=liuyao["status"], payload={"thread_id": liuyao["thread_id"]})
+        elif routing.primary_intent == IntentType.LIUYAO:
+            state.pending_interrupt = None
+        for item in results:
+            if item.intent == IntentType.DREAM and requirement.status == RequirementStatus.READY:
+                state.pending_query = turn["task_query"]
+        return {"conversation": state, "results": results}
+
+    async def _response(self, turn: TurnState) -> dict:
+        response = await self._synthesizer.synthesize(SynthesisInput(query=turn["query"], results=turn["results"]))
+        state = turn["conversation"]
         if (
-            self._memory_selector is not None
-            and routing_result.primary_intent == IntentType.BAZI
+            state.requirement_result.status == RequirementStatus.NEEDS_INPUT
+            and RequiredDataType.BIRTH_PROFILE in state.requirement_result.missing_data
+            and "input_requirement" in state.agent_states.bazi
         ):
-            profile = req_context.available_data.get(RequiredDataType.BIRTH_PROFILE)
-            if profile is not None:
-                await self._memory_selector.persist_birth_profile(session_id, profile)
+            need = state.agent_states.bazi["input_requirement"]
+            fields = need.get("missing_fields", [])
+            content = ("请补充出生资料：" + "、".join(fields)) if fields else need.get("reason", response.content)
+            response = response.model_copy(update={"content": content, "status": "needs_input"})
+        response = response.model_copy(update={"session_id": state.session_id})
+        state.messages.append(MessageState(role="assistant", content=response.content))
+        return {"conversation": state, "response": response}
 
-        # 8. Update Agent States (在不知道领域结构的前提下防御性注入)
+    async def _persist(self, turn: TurnState) -> dict:
+        state, context = turn["conversation"], turn["context"]
         try:
-            self._update_agent_states(state, results)
-        except Exception as exc:
-            raise StateUpdateError("更新 Agent State 时发生数据错误。") from exc
-
-        # 9. Synthesis
-        try:
-            synth_input = SynthesisInput(query=user_query, results=results)
-            synth_response = await self._synthesizer.synthesize(synth_input)
-
-            # 10. Append Assistant Message
-            state.messages.append(MessageState(role="assistant", content=synth_response.content))
-        except Exception as exc:
-            raise ConversationExecutionError("Synthesizer 合并响应执行失败。") from exc
-
-        # 11. Persistence
-        try:
+            profile = context.available_data.get(RequiredDataType.BIRTH_PROFILE)
+            if self._memory_selector is not None and profile is not None and turn["birth_patch"] is not None:
+                await self._memory_selector.persist_birth_profile(state.session_id, profile)
             await self._memory_store.update(state)
         except Exception as exc:
             raise StateUpdateError("最终持久化 ConversationState 失败。") from exc
-
-        return synth_response
+        return {}
 
     def _update_agent_states(self, state: ConversationState, results: tuple[AgentExecutionResult, ...]) -> None:
-        """安全更新 Agent State，不探查 Agent 内部字段，不违反 Runtime Object Rule"""
-        for res in results:
-            intent_val = res.intent.value
-            agent_dict = getattr(state.agent_states, intent_val, None)
-            
-            if agent_dict is not None:
-                try:
-                    if hasattr(res.output, "model_dump_json"):
-                        agent_dict["latest_output"] = json.loads(res.output.model_dump_json())
-                    elif isinstance(res.output, dict):
-                        agent_dict["latest_output"] = json.loads(json.dumps(res.output))
-                    else:
-                        agent_dict["latest_output"] = str(res.output)
-                except Exception:
-                    agent_dict["latest_output"] = "Unserializable output representation"
-
+        for result in results:
+            target = getattr(state.agent_states, result.intent.value, None)
+            if target is None:
+                continue
+            if hasattr(result.output, "model_dump_json"):
+                target["latest_output"] = json.loads(result.output.model_dump_json())
+            elif isinstance(result.output, dict):
+                target["latest_output"] = json.loads(json.dumps(result.output))
