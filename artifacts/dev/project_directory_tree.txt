@@ -1,47 +1,48 @@
 GuanChen v2/
-├── artifacts/
-│   └── dev/
+├── artifacts
+│   └── dev
 │       ├── corpus_chunk_dict.txt
+│       ├── plan_frozen_v1.0_text.txt
 │       ├── project_directory_tree.txt
 │       ├── project_source_code.txt
 │       └── test_localsystem.txt
-├── data/
-│   └── knowledge/
-│       ├── raw_verified/
-│       │   ├── bazi/
+├── data
+│   └── knowledge
+│       ├── raw_verified
+│       │   ├── bazi
 │       │   │   ├── ditiansui_chanwei.md
 │       │   │   ├── ditiansui_original.md
 │       │   │   ├── sanming_tonghui.md
 │       │   │   └── yuanhai_ziping.md
-│       │   ├── dream/
+│       │   ├── dream
 │       │   │   └── zhougongjiemeng.md
-│       │   ├── liuyao/
+│       │   ├── liuyao
 │       │   │   └── zengshan_buyi.md
-│       │   └── yijing/
+│       │   └── yijing
 │       │       └── zhouyi.md
-│       └── source_original/
-│           ├── bazi/
+│       └── source_original
+│           ├── bazi
 │           │   ├── ditiansui_chanwei_luckclub.pdf
 │           │   ├── ditiansui_original_luckclub.pdf
 │           │   ├── sanming_tonghui_luckclub.pdf
 │           │   └── yuanhai_ziping_luckclub.pdf
-│           ├── dream/
+│           ├── dream
 │           │   └── zhougongjiemeng.txt
-│           ├── liuyao/
+│           ├── liuyao
 │           │   └── zengshan_buyi_luckclub.pdf
-│           └── yijing/
+│           └── yijing
 │               └── zhouyi_luckclub.pdf
-├── docs/
-│   ├── adr/
+├── docs
+│   ├── adr
 │   │   ├── 000-template.md
 │   │   ├── 001-use-lunar-python-for-bazi-calculation.md
 │   │   ├── 002-use-postgresql-pgvector-for-vector-storage.md
 │   │   ├── 003-use-ichingpy-for-liuyao-calculation.md
 │   │   ├── 004-introduce-langgraph-only-when-required.md
 │   │   └── 005-use-mcp-as-external-interoperability-layer.md
-│   ├── archive/
+│   ├── archive
 │   │   └── stage0_artifacts_index.md
-│   ├── reference/
+│   ├── reference
 │   │   ├── 项目规划.docx
 │   │   └── 项目规划.txt
 │   ├── agent_contracts.md
@@ -54,53 +55,66 @@ GuanChen v2/
 │   ├── product_charter.md
 │   ├── request_lifecycle.md
 │   ├── roadmap.md
+│   ├── stage1_stage8_review_2026-09-18.md
 │   ├── stage3_bazi_agent_acceptance.md
 │   ├── stage_status.md
 │   └── user_flows.md
-├── evals/
-│   └── retrieval/
-│       ├── stage4_retrieval_failures.jsonl
-│       ├── stage4_retrieval_golden.json
-│       └── stage4_retrieval_report.json
-├── scripts/
-│   ├── dev/
+├── evals
+│   ├── acceptance
+│   │   ├── stage4_answer_report.json
+│   │   └── stage8_live_report.json
+│   ├── retrieval
+│   │   ├── stage4_retrieval_failures.jsonl
+│   │   ├── stage4_retrieval_golden.json
+│   │   └── stage4_retrieval_report.json
+│   └── router
+│       ├── stage7_router_failures.jsonl
+│       ├── stage7_router_golden.json
+│       └── stage7_router_report.json
+├── scripts
+│   ├── dev
 │   │   ├── export_code.py
 │   │   ├── export_tree.py
 │   │   └── peek_corpus_chunks.py
-│   ├── smoke/
+│   ├── smoke
 │   │   ├── smoke_bazi_agent.py
 │   │   ├── smoke_dream_extractor.py
 │   │   ├── smoke_llm.py
 │   │   └── smoke_reranker.py
 │   ├── bazi_cli.py
+│   ├── chat_cli.py
 │   ├── create_memory_tables.py
 │   ├── eval_retrieval.py
+│   ├── eval_router.py
 │   ├── ingest_corpus.py
-│   └── stage5_acceptance.py
-├── src/
-│   └── guanchen_v2/
-│       ├── agents/
-│       │   ├── bazi/
+│   ├── stage4_answer_acceptance.py
+│   ├── stage5_acceptance.py
+│   └── stage8_acceptance.py
+├── src
+│   └── guanchen_v2
+│       ├── agents
+│       │   ├── bazi
 │       │   │   ├── exceptions.py
 │       │   │   ├── models.py
 │       │   │   ├── requirements.py
 │       │   │   ├── runtime.py
 │       │   │   └── session.py
-│       │   └── knowledge/
+│       │   └── knowledge
 │       │       ├── agent.py
 │       │       └── models.py
-│       ├── application/
+│       ├── application
 │       │   ├── context.py
 │       │   ├── exceptions.py
+│       │   ├── factory.py
 │       │   └── orchestrator.py
-│       ├── bazi/
+│       ├── bazi
 │       │   ├── adapter.py
 │       │   ├── exceptions.py
 │       │   └── service.py
-│       ├── config/
+│       ├── config
 │       │   └── settings.py
-│       ├── core/
-│       │   ├── session/
+│       ├── core
+│       │   ├── session
 │       │   │   ├── __init__.py
 │       │   │   ├── enums.py
 │       │   │   ├── models.py
@@ -108,15 +122,15 @@ GuanChen v2/
 │       │   ├── agent_contract.py
 │       │   ├── errors.py
 │       │   └── logging.py
-│       ├── dream/
+│       ├── dream
 │       │   ├── context.py
 │       │   ├── dream_merge.py
 │       │   ├── exceptions.py
 │       │   ├── extractor.py
 │       │   ├── retrieval.py
 │       │   └── runtime.py
-│       ├── knowledge/
-│       │   ├── ingestion/
+│       ├── knowledge
+│       │   ├── ingestion
 │       │   │   ├── chunker.py
 │       │   │   ├── errors.py
 │       │   │   ├── loader.py
@@ -124,10 +138,10 @@ GuanChen v2/
 │       │   │   ├── normalizer.py
 │       │   │   ├── parser.py
 │       │   │   └── service.py
-│       │   ├── persistence/
+│       │   ├── persistence
 │       │   │   ├── database.py
 │       │   │   └── models.py
-│       │   ├── retrieval/
+│       │   ├── retrieval
 │       │   │   ├── assembler.py
 │       │   │   ├── dense.py
 │       │   │   ├── rerank.py
@@ -140,7 +154,7 @@ GuanChen v2/
 │       │   ├── eval_models.py
 │       │   ├── models.py
 │       │   └── rerank_adapter.py
-│       ├── liuyao/
+│       ├── liuyao
 │       │   ├── casting.py
 │       │   ├── checkpoint.py
 │       │   ├── exceptions.py
@@ -150,12 +164,12 @@ GuanChen v2/
 │       │   ├── retrieval.py
 │       │   ├── state.py
 │       │   └── workflow.py
-│       ├── llm/
+│       ├── llm
 │       │   ├── client.py
 │       │   ├── exceptions.py
 │       │   └── provider.py
-│       ├── memory/
-│       │   ├── implementations/
+│       ├── memory
+│       │   ├── implementations
 │       │   │   ├── inmemory.py
 │       │   │   └── postgres.py
 │       │   ├── checkpointer.py
@@ -166,18 +180,18 @@ GuanChen v2/
 │       │   ├── selector.py
 │       │   ├── store.py
 │       │   └── stores.py
-│       ├── models/
+│       ├── models
 │       │   ├── bazi.py
 │       │   ├── dream.py
 │       │   └── liuyao.py
-│       ├── prompts/
+│       ├── prompts
 │       │   ├── bazi_agent.py
 │       │   ├── dream_agent.py
 │       │   ├── liuyao_agent.py
 │       │   ├── router.py
 │       │   └── smoke.py
-│       ├── router/
-│       │   ├── adapters/
+│       ├── router
+│       │   ├── adapters
 │       │   │   ├── bazi.py
 │       │   │   ├── dream.py
 │       │   │   ├── knowledge.py
@@ -193,22 +207,24 @@ GuanChen v2/
 │       │   ├── requirements.py
 │       │   ├── synthesis.py
 │       │   └── synthesizer.py
-│       ├── tools/
+│       ├── tools
 │       │   ├── bazi.py
 │       │   └── bazi_retrieval.py
 │       └── __init__.py
-├── tests/
-│   ├── agents/
-│   │   ├── bazi/
+├── tests
+│   ├── agents
+│   │   ├── bazi
 │   │   │   ├── test_requirements.py
 │   │   │   ├── test_runtime.py
 │   │   │   ├── test_session.py
 │   │   │   └── test_stage3_acceptance.py
-│   │   └── knowledge/
+│   │   └── knowledge
 │   │       └── test_agent_orchestration.py
-│   ├── application/
-│   │   └── test_orchestrator.py
-│   ├── bazi/
+│   ├── application
+│   │   ├── test_factory_integration.py
+│   │   ├── test_orchestrator.py
+│   │   └── test_stage9_gate_regressions.py
+│   ├── bazi
 │   │   ├── __init__.py
 │   │   ├── cases.py
 │   │   ├── test_adapter.py
@@ -216,30 +232,30 @@ GuanChen v2/
 │   │   ├── test_bazi_retrieval.py
 │   │   ├── test_bazi_tool.py
 │   │   └── test_service.py
-│   ├── config/
+│   ├── config
 │   │   └── test_settings.py
-│   ├── core/
-│   │   └── session/
+│   ├── core
+│   │   └── session
 │   │       └── test_session.py
-│   ├── dream/
+│   ├── dream
 │   │   ├── test_context.py
 │   │   ├── test_dream_merge.py
 │   │   ├── test_extractor.py
 │   │   ├── test_retrieval.py
 │   │   ├── test_runtime.py
 │   │   └── test_strict_schemas.py
-│   ├── knowledge/
-│   │   ├── ingestion/
+│   ├── knowledge
+│   │   ├── ingestion
 │   │   │   ├── test_chunker.py
 │   │   │   ├── test_ingestion_service.py
 │   │   │   ├── test_loader.py
 │   │   │   ├── test_normalizer.py
 │   │   │   ├── test_parser.py
 │   │   │   └── test_stage4_corpus_smoke.py
-│   │   ├── persistence/
+│   │   ├── persistence
 │   │   │   ├── test_database.py
 │   │   │   └── test_db_integration.py
-│   │   ├── retrieval/
+│   │   ├── retrieval
 │   │   │   ├── test_assembler.py
 │   │   │   ├── test_dense_integration.py
 │   │   │   ├── test_filters_integration.py
@@ -250,7 +266,7 @@ GuanChen v2/
 │   │   ├── test_embeddings.py
 │   │   ├── test_eval_metrics.py
 │   │   └── test_models.py
-│   ├── liuyao/
+│   ├── liuyao
 │   │   ├── test_casting.py
 │   │   ├── test_checkpoint_persistence.py
 │   │   ├── test_policy.py
@@ -258,27 +274,26 @@ GuanChen v2/
 │   │   ├── test_runtime_integration.py
 │   │   ├── test_stage6_acceptance.py
 │   │   └── test_workflow.py
-│   ├── llm/
+│   ├── llm
 │   │   ├── test_client.py
 │   │   └── test_provider.py
-│   ├── memory/
+│   ├── memory
 │   │   ├── test_birth_profile_repository.py
 │   │   ├── test_checkpoint_recovery.py
 │   │   ├── test_domain_record_stores.py
 │   │   ├── test_inmemory_store.py
 │   │   ├── test_memory_selector.py
 │   │   └── test_postgres_memory_store.py
-│   ├── models/
+│   ├── models
 │   │   ├── test_bazi_models.py
 │   │   └── test_liuyao_models.py
-│   ├── router/
+│   ├── router
 │   │   ├── test_adapters.py
 │   │   ├── test_contracts.py
 │   │   ├── test_core.py
 │   │   ├── test_dispatch.py
 │   │   ├── test_dual_dispatch.py
 │   │   ├── test_requirements.py
-│   │   ├── test_stage7_acceptance.py
 │   │   └── test_stage7_router_acceptance.py
 │   ├── __init__.py
 │   ├── conftest.py

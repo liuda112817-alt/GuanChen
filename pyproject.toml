@@ -28,6 +28,7 @@ dependencies = [
     "sentence-transformers>=6.0.1",
     "sqlalchemy>=2.0.52",
     "torch>=2.14.0",
+    "mcp>=1.0.0,<2",
 ]
 
 [build-system]
