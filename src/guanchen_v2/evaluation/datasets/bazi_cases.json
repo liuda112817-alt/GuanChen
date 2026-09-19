@@ -1,0 +1,17 @@
+[
+  {
+    "id": "bazi_case_001",
+    "capability": "bazi.calculate",
+    "input": {
+      "year": 1990,
+      "month": 1,
+      "day": 1,
+      "hour": 12,
+      "minute": 30,
+      "gender": "male"
+    },
+    "expected": {
+      "required_fields": ["year_pillar", "day_master"]
+    }
+  }
+]

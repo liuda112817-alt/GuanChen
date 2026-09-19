@@ -1,0 +1,25 @@
+[
+  {
+    "id": "liuyao_case_001",
+    "capability": "liuyao.cast_hexagram",
+    "input": {
+      "question": "近期事业发展",
+      "method": "random"
+    },
+    "expected": {
+      "required_fields": ["ben_gua", "bian_gua", "dong_yao"]
+    }
+  },
+  {
+    "id": "liuyao_case_002",
+    "capability": "liuyao.cast_hexagram",
+    "input": {
+      "question": "测考试",
+      "method": "manual",
+      "manual_records": [1, 2]
+    },
+    "expected": {
+      "error_expected": true
+    }
+  }
+]

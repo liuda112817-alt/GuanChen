@@ -242,3 +242,16 @@ Stage 8 应用验收：32 个真实入口场景通过
 5. 只有正确性、安全性或不可运行的阻塞问题可以触发最小方案变更，并记录 ADR。
 
 当前 Stage 9（MCP Standardization）尚未开始；Stage 8 Gate 已通过，可进入 Stage 9。
+
+## 当前状态
+Stage 10 — Evaluation + Observability 已完成 (Stage 0–10 完成)
+
+**Evaluation:**
+- Capability Evaluation Framework
+- Bazi / Knowledge / Liuyao Evaluation Suite
+- Stage 10 Report
+
+**Observability:**
+- TraceContext & Structured Events
+- Runtime Metrics Snapshot
+- Application Trace & MCP Trace

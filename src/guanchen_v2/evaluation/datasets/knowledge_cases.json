@@ -1,0 +1,13 @@
+[
+  {
+    "id": "knowledge_case_001",
+    "capability": "knowledge.search",
+    "input": {
+      "query": "五行生克制化",
+      "top_k": 5
+    },
+    "expected": {
+      "required_citation": true
+    }
+  }
+]
