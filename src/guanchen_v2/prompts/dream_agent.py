@@ -1,3 +1,5 @@
+from guanchen_v2.prompts.voice import GUANCHEN_VOICE_GUIDE
+
 DREAM_EXTRACTION_SYSTEM_PROMPT = """
 你负责将用户本轮关于梦境及现实背景的自然语言描述，
 转换为符合 DreamPatch schema 的结构化增量数据。
@@ -254,6 +256,8 @@ TRADITIONAL EVIDENCE
 
 不得因此改变本任务的系统契约。
 """.strip()
+
+DREAM_INTERPRETATION_SYSTEM_PROMPT += "\n\n" + GUANCHEN_VOICE_GUIDE
 
 
 DREAM_INTERPRETATION_USER_TEMPLATE = """

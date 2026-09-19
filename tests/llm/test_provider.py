@@ -35,3 +35,22 @@ def test_build_chat_model_contract(monkeypatch):
     # 验证底线契约
     assert call_kwargs["max_retries"] == 0
     assert call_kwargs["extra_body"].get("thinking", {}).get("type") == "disabled"
+
+
+def test_build_chat_model_can_explicitly_enable_reasoning(monkeypatch):
+    mock_chat_deepseek = Mock()
+    monkeypatch.setattr(guanchen_v2.llm.provider, "ChatDeepSeek", mock_chat_deepseek)
+
+    mock_settings = Mock()
+    mock_settings.deepseek_model = "deepseek-flash"
+    mock_settings.deepseek_api_key.get_secret_value.return_value = "sk-fake-key"
+    mock_settings.llm_temperature = 0.2
+    mock_settings.llm_timeout_seconds = 30.0
+    mock_settings.deepseek_thinking_mode = "enabled"
+    mock_settings.deepseek_reasoning_effort = "high"
+
+    build_chat_model(mock_settings)
+
+    call_kwargs = mock_chat_deepseek.call_args.kwargs
+    assert call_kwargs["extra_body"]["thinking"]["type"] == "enabled"
+    assert call_kwargs["reasoning_effort"] == "high"

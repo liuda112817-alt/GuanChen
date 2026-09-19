@@ -78,7 +78,7 @@ Blocked / Redirected
 → Complete
 ```
 
-具体 Safety 规则在 Stage 11 实现。
+具体 Safety 规则已在 Stage 11 后端实现，HTTP/SSE 层统一复用同一 SafetyService。
 
 ---
 
@@ -393,4 +393,4 @@ SSE 是传输 / 展示通道。
 
 Safety 必须能够在专业起卦流程前处理明确高风险请求。
 
-具体策略留到 Stage 11。
+具体策略已在 Stage 11 后端实现；明确高风险请求在起卦前被拦截，模糊风险进入结构化分类器。

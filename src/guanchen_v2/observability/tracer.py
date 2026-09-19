@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Generator
 
+from guanchen_v2.application.progress import emit_progress
 from guanchen_v2.observability.context import TraceContext
 from guanchen_v2.observability.events import ObservabilityEvent
 from guanchen_v2.observability.logger import log_event
@@ -75,6 +76,8 @@ class Tracer:
 
         # copy，避免修改调用者原始 metadata。
         state = SpanState(metadata=dict(metadata or {}))
+        if event_type == "TOOL":
+            emit_progress("tool_start", {"tool": component})
 
         try:
             yield state
@@ -108,6 +111,12 @@ class Tracer:
                 _node.reset(node_token)
 
             step = self.run.steps[-1]
+            if event_type == "TOOL":
+                emit_progress("tool_end", {"tool": component, "status": state.status})
+            elif event_type == "RETRIEVAL":
+                emit_progress("retrieval", {"chunk_ids": step.retrieved_chunk_ids, "status": state.status})
+            elif event_type == "ROUTE" and state.status == "SUCCESS":
+                emit_progress("route", {"intents": self.run.route.split("+")})
             state.metadata.update(agent=step.agent, node=step.node, tool=step.tool)
             event = ObservabilityEvent(
                 timestamp=datetime.now(timezone.utc).isoformat(),

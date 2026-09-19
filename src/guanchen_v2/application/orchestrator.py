@@ -39,6 +39,7 @@ from guanchen_v2.router.synthesis import (
     SynthesisInput,
     SynthesizedResponse,
 )
+from guanchen_v2.safety.output import protect_response
 
 
 class TurnState(TypedDict, total=False):
@@ -687,6 +688,7 @@ class ConversationOrchestrator:
             }
         )
 
+        response = protect_response(response)
         state.messages.append(
             MessageState(
                 role="assistant",

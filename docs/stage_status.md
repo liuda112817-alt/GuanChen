@@ -33,10 +33,28 @@ It only describes the current implementation state.
 | Stage 8 | Memory Persistence | Completed |
 | Stage 9 | Official MCP v2 / Streamable HTTP | Implemented; see current baseline |
 | Stage 10 | Evaluation / Observability | Implemented; see current baseline |
+| Stage 11 | Safety / FastAPI / SSE / backend contract | Completed; see Stage 11 backend review |
 
 ---
 
 # Stage Details
+
+## Stage 11 — Safety, API and SSE Backend
+
+### Objective
+
+Deliver the backend contract needed by the Bolt UI: safety gating, anonymous session access, profile and citation APIs, resumable Liuyao interruptions, and observable SSE progress.
+
+### Current Status
+
+Completed for the current backend scope. Frontend implementation is intentionally deferred to Bolt; public deployment, Redis, rate limiting and multi-worker operations remain Stage 12 work.
+
+### Verification
+
+- `scripts/eval_stage11_backend.py` passes the OpenAPI contract, session isolation, validation, normal chat, risk blocking, profile readiness, citation access, SSE progress, Liuyao interrupt/modify/resume/stale/restart/idempotency and cancellation checks.
+- `scripts/run_evals.py --include-stage11` passes the Stage 1–11 backend gate. See [reports/stage11_final/report.md](../reports/stage11_final/report.md).
+- API details and Bolt integration contract are documented in [stage11_backend_api.md](stage11_backend_api.md).
+- Shared user-visible response voice is documented in [response_style.md](response_style.md); the model remains `deepseek-flash` with thinking disabled by default and an explicit reasoning switch for complex deployments.
 
 
 ## Stage 1 — LLM Foundation

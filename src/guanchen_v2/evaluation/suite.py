@@ -18,10 +18,17 @@ def read_json(path):
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
-def verdict(phases, router, retrieval, e2e, mcp):
-    return {
-        "all_commands_completed": {p.get("name") for p in phases} == {"regression", "integration", "mcp", "router", "retrieval", "e2e"}
-        and all(p["returncode"] == 0 for p in phases),
+def source_hashes():
+    paths = [*ROOT.glob("src/**/*.py"), *ROOT.glob("scripts/**/*.py"), ROOT / "pyproject.toml", ROOT / "uv.lock"]
+    return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
+
+
+def verdict(phases, router, retrieval, e2e, mcp, stage11=None):
+    expected = {"regression", "integration", "mcp", "router", "retrieval", "e2e"}
+    if stage11 is not None:
+        expected.add("api")
+    checks = {
+        "all_commands_completed": {p.get("name") for p in phases} == expected and all(p["returncode"] == 0 for p in phases),
         "router": router.get("passed") is True and router.get("mode") == "full_chain",
         "retrieval": retrieval.get("query_count", 0) >= 45
         and retrieval.get("rrf", {}).get("recall_at_5", 0) >= 0.85
@@ -34,6 +41,29 @@ def verdict(phases, router, retrieval, e2e, mcp):
             for r in e2e.get("routes", {}).values()
         ),
     }
+    if stage11 is not None:
+        checks["stage11_backend"] = stage11.get("passed") is True and all(
+            stage11.get("checks", {}).get(name) is True
+            for name in (
+                "api_contract",
+                "crisis",
+                "medical_risk",
+                "investment_risk",
+                "legal_risk",
+                "knowledge_no_birth",
+                "dream_no_birth",
+                "bazi_answer",
+                "liuyao_resume_after_restart",
+                "cast_exactly_once",
+                "cancel_does_not_cast",
+                "anonymous_isolation",
+                "session_survives_restart",
+                "stale_confirmation_rejected",
+                "citation_text",
+                "live_tool_progress",
+            )
+        )
+    return checks
 
 
 def test_counts(path, prefix=None):
@@ -48,6 +78,7 @@ def test_counts(path, prefix=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "reports/stage10_baseline")
+    parser.add_argument("--include-stage11", action="store_true", help="Also run real HTTP/SSE/Safety acceptance")
     args = parser.parse_args()
     output = args.output_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -61,6 +92,8 @@ def main():
         ("retrieval", ["scripts/eval_retrieval.py", "--skip-reranker"], ROOT / "evals/retrieval/stage4_retrieval_report.json"),
         ("e2e", ["-m", "guanchen_v2.evaluation.end_to_end", str(output / "e2e.json")], None),
     ]
+    if args.include_stage11:
+        definitions.append(("api", ["scripts/eval_stage11_backend.py"], ROOT / "reports/stage11_backend/report.json"))
     for name, command, source in definitions:
         started = datetime.now(timezone.utc)
         print(f"Running {name}; log: {output / (name + '.log')}", flush=True)
@@ -86,7 +119,8 @@ def main():
                 target.write_text("{}", encoding="utf-8")
         print(f"{name}: exit {code}", flush=True)
     router, retrieval, e2e, mcp = [read_json(output / f"{name}.json") for name in ("router", "retrieval", "e2e", "mcp")]
-    checks = verdict(phases, router, retrieval, e2e, mcp)
+    stage11 = read_json(output / "api.json") if args.include_stage11 else None
+    checks = verdict(phases, router, retrieval, e2e, mcp, stage11)
     hashes = {
         str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
         for p in sorted((ROOT / "evals").rglob("*.json"))
@@ -96,6 +130,7 @@ def main():
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "base_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "working_tree_diff_sha256": hashlib.sha256(subprocess.check_output(["git", "diff", "HEAD"], cwd=ROOT)).hexdigest(),
+        "source_sha256": source_hashes(),
         "dataset_sha256": hashes,
         "phases": phases,
         "checks": checks,
@@ -114,7 +149,7 @@ def main():
     }
     (output / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     lines = [
-        "# Stage 1–10 evaluation baseline",
+        "# Stage 1–11 backend evaluation baseline" if args.include_stage11 else "# Stage 1–10 evaluation baseline",
         "",
         f"Generated: {report['generated_at']}",
         "",
@@ -149,5 +184,5 @@ def main():
         "Reranker stays disabled under the saved Stage 4 quality/latency decision; this command evaluates the production RRF path.",
     ]
     (output / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"Stage 1–10 gate: {report['passed']}; {output / 'report.md'}", flush=True)
+    print(f"Backend gate: {report['passed']}; {output / 'report.md'}", flush=True)
     return 0 if report["passed"] else 1

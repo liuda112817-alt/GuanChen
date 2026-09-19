@@ -50,11 +50,17 @@ GuanChen v2/
 │   ├── backlog_v2_1.md
 │   ├── bazi_calculation_contract.md
 │   ├── domain_models.md
+│   ├── evaluation_framework.md
 │   ├── knowledge_corpus_manifest.md
 │   ├── learning_knowledge_map.md
+│   ├── mcp_capability_registry.md
+│   ├── mcp_usage.md
+│   ├── observability_design.md
 │   ├── product_charter.md
 │   ├── request_lifecycle.md
 │   ├── roadmap.md
+│   ├── stage10_validation.md
+│   ├── stage1_stage10_review_2026-09-19.md
 │   ├── stage1_stage8_review_2026-09-18.md
 │   ├── stage3_bazi_agent_acceptance.md
 │   ├── stage_status.md
@@ -63,7 +69,10 @@ GuanChen v2/
 │   ├── acceptance
 │   │   ├── stage4_answer_report.json
 │   │   └── stage8_live_report.json
+│   ├── e2e
+│   │   └── stage10_cases.json
 │   ├── retrieval
+│   │   ├── stage4_reranker_baseline.json
 │   │   ├── stage4_retrieval_failures.jsonl
 │   │   ├── stage4_retrieval_golden.json
 │   │   └── stage4_retrieval_report.json
@@ -71,6 +80,29 @@ GuanChen v2/
 │       ├── stage7_router_failures.jsonl
 │       ├── stage7_router_golden.json
 │       └── stage7_router_report.json
+├── reports
+│   ├── stage10_baseline
+│   │   ├── e2e.json
+│   │   ├── e2e.log
+│   │   ├── integration.log
+│   │   ├── integration.xml
+│   │   ├── mcp.json
+│   │   ├── mcp.log
+│   │   ├── regression.log
+│   │   ├── regression.xml
+│   │   ├── report.json
+│   │   ├── report.md
+│   │   ├── retrieval.json
+│   │   ├── retrieval.log
+│   │   ├── router.json
+│   │   └── router.log
+│   ├── dream_diagnostic.log
+│   ├── mcp_server.log
+│   ├── mcp_smoke.json
+│   ├── stage10_e2e.log
+│   ├── stage10_suite.log
+│   ├── stage10_suite_final.log
+│   └── stdio_observability.log
 ├── scripts
 │   ├── dev
 │   │   ├── export_code.py
@@ -80,6 +112,7 @@ GuanChen v2/
 │   │   ├── smoke_bazi_agent.py
 │   │   ├── smoke_dream_extractor.py
 │   │   ├── smoke_llm.py
+│   │   ├── smoke_mcp.py
 │   │   └── smoke_reranker.py
 │   ├── bazi_cli.py
 │   ├── chat_cli.py
@@ -87,6 +120,8 @@ GuanChen v2/
 │   ├── eval_retrieval.py
 │   ├── eval_router.py
 │   ├── ingest_corpus.py
+│   ├── run_evals.py
+│   ├── smoke_observability.py
 │   ├── stage4_answer_acceptance.py
 │   ├── stage5_acceptance.py
 │   └── stage8_acceptance.py
@@ -110,6 +145,7 @@ GuanChen v2/
 │       ├── bazi
 │       │   ├── adapter.py
 │       │   ├── exceptions.py
+│       │   ├── formatting.py
 │       │   └── service.py
 │       ├── config
 │       │   └── settings.py
@@ -129,6 +165,27 @@ GuanChen v2/
 │       │   ├── extractor.py
 │       │   ├── retrieval.py
 │       │   └── runtime.py
+│       ├── evaluation
+│       │   ├── datasets
+│       │   │   ├── bazi_cases.json
+│       │   │   ├── knowledge_cases.json
+│       │   │   └── liuyao_cases.json
+│       │   ├── evaluators
+│       │   │   ├── __init__.py
+│       │   │   ├── bazi.py
+│       │   │   ├── knowledge.py
+│       │   │   └── liuyao.py
+│       │   ├── __init__.py
+│       │   ├── capability_runner.py
+│       │   ├── end_to_end.py
+│       │   ├── evaluator.py
+│       │   ├── metrics.py
+│       │   ├── models.py
+│       │   ├── registry.py
+│       │   ├── reporting.py
+│       │   ├── runner.py
+│       │   ├── stage10_report.py
+│       │   └── suite.py
 │       ├── knowledge
 │       │   ├── ingestion
 │       │   │   ├── chunker.py
@@ -168,6 +225,21 @@ GuanChen v2/
 │       │   ├── client.py
 │       │   ├── exceptions.py
 │       │   └── provider.py
+│       ├── mcp
+│       │   ├── adapters
+│       │   │   ├── bazi_adapter.py
+│       │   │   ├── knowledge_adapter.py
+│       │   │   └── liuyao_adapter.py
+│       │   ├── security
+│       │   │   ├── audit.py
+│       │   │   └── permissions.py
+│       │   ├── tools
+│       │   │   ├── bazi.py
+│       │   │   ├── knowledge.py
+│       │   │   └── liuyao.py
+│       │   ├── config.py
+│       │   ├── registry.py
+│       │   └── server.py
 │       ├── memory
 │       │   ├── implementations
 │       │   │   ├── inmemory.py
@@ -184,6 +256,18 @@ GuanChen v2/
 │       │   ├── bazi.py
 │       │   ├── dream.py
 │       │   └── liuyao.py
+│       ├── observability
+│       │   ├── __init__.py
+│       │   ├── context.py
+│       │   ├── decorators.py
+│       │   ├── events.py
+│       │   ├── integration.py
+│       │   ├── llm_callback.py
+│       │   ├── logger.py
+│       │   ├── metrics.py
+│       │   ├── middleware.py
+│       │   ├── models.py
+│       │   └── tracer.py
 │       ├── prompts
 │       │   ├── bazi_agent.py
 │       │   ├── dream_agent.py
@@ -244,6 +328,14 @@ GuanChen v2/
 │   │   ├── test_retrieval.py
 │   │   ├── test_runtime.py
 │   │   └── test_strict_schemas.py
+│   ├── evaluation
+│   │   ├── test_bazi_evaluator.py
+│   │   ├── test_framework.py
+│   │   ├── test_gate_regressions.py
+│   │   ├── test_knowledge_evaluator.py
+│   │   ├── test_liuyao_evaluator.py
+│   │   ├── test_reporting.py
+│   │   └── test_stage10_report.py
 │   ├── knowledge
 │   │   ├── ingestion
 │   │   │   ├── test_chunker.py
@@ -277,6 +369,14 @@ GuanChen v2/
 │   ├── llm
 │   │   ├── test_client.py
 │   │   └── test_provider.py
+│   ├── mcp
+│   │   ├── test_bazi_tool.py
+│   │   ├── test_http_access.py
+│   │   ├── test_knowledge_tool.py
+│   │   ├── test_liuyao_tool.py
+│   │   ├── test_permission.py
+│   │   ├── test_protocol_validation_trace.py
+│   │   └── test_tool_registry.py
 │   ├── memory
 │   │   ├── test_birth_profile_repository.py
 │   │   ├── test_checkpoint_recovery.py
@@ -287,6 +387,14 @@ GuanChen v2/
 │   ├── models
 │   │   ├── test_bazi_models.py
 │   │   └── test_liuyao_models.py
+│   ├── observability
+│   │   ├── __init__.py
+│   │   ├── test_call_budgets.py
+│   │   ├── test_events.py
+│   │   ├── test_logger.py
+│   │   ├── test_metrics_snapshot.py
+│   │   ├── test_runtime_trace.py
+│   │   └── test_trace.py
 │   ├── router
 │   │   ├── test_adapters.py
 │   │   ├── test_contracts.py
@@ -294,7 +402,8 @@ GuanChen v2/
 │   │   ├── test_dispatch.py
 │   │   ├── test_dual_dispatch.py
 │   │   ├── test_requirements.py
-│   │   └── test_stage7_router_acceptance.py
+│   │   ├── test_stage7_router_acceptance.py
+│   │   └── test_synthesis_facts.py
 │   ├── __init__.py
 │   ├── conftest.py
 │   ├── test_error_message_safety.py

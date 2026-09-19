@@ -6,6 +6,7 @@ from guanchen_v2.knowledge.errors import KnowledgeAgentError
 from guanchen_v2.knowledge.models import Citation, RetrievalResult
 from guanchen_v2.knowledge.retrieval.service import RetrievalService
 from guanchen_v2.llm.client import LLMClient
+from guanchen_v2.prompts.voice import GUANCHEN_VOICE_GUIDE
 
 
 class KnowledgeAgent:
@@ -73,6 +74,8 @@ class KnowledgeAgent:
             "11. 直接回答当前问题，通常控制在200至500字，不罗列无关命例、吉凶条文或重复总结。\n"
             "12. 不得自行执行排盘、起卦等确定性计算。"
             "如果用户询问这些概念本身，可以依据证据进行知识解释。"
+            "\n\n"
+            + GUANCHEN_VOICE_GUIDE
         )
 
     async def answer(self, query: str) -> KnowledgeAgentResponse:

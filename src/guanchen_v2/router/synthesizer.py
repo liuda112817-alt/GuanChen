@@ -1,6 +1,7 @@
 from guanchen_v2.bazi.formatting import render_bazi_facts
 from guanchen_v2.dream.runtime import DreamAgentResult
 from guanchen_v2.llm.client import LLMClient
+from guanchen_v2.prompts.voice import GUANCHEN_VOICE_GUIDE
 from guanchen_v2.router.adapters.liuyao import LiuyaoInvocationResult
 from guanchen_v2.router.contracts import IntentType
 from guanchen_v2.router.dual_requirements import DualRequirementCheckResult
@@ -125,6 +126,8 @@ KNOWLEDGE Agent：
 对已有 Agent 结果的准确整理。
 """.strip()
 
+SYNTHESIZER_PROMPT += "\n\n" + GUANCHEN_VOICE_GUIDE
+
 
 class AgentSynthesizer:
     def __init__(self, llm_client: LLMClient):
@@ -139,13 +142,15 @@ class AgentSynthesizer:
             if isinstance(output, (RequirementCheckResult, DualRequirementCheckResult)):
                 if output.status == RequirementStatus.BYPASS:
                     content = (
-                        "你好，我可以帮助你了解传统文化、八字、梦境和六爻决策反思。"
+                        "得嘞，传统文化、八字、梦境和六爻决策反思，我都可以陪你捋一捋。"
                         if result.intent == IntentType.CHITCHAT
-                        else "这个请求超出当前传统文化服务范围。"
+                        else "这件事不在当前服务范围里，咱们先不硬掰。"
                     )
                     return SynthesizedResponse(content=content, used_intents=())
                 return SynthesizedResponse(
-                    content="请补充资料：" + "、".join(x.value for x in output.missing_data), status="needs_input", used_intents=intents
+                    content="先补一点关键资料，别急着往下猜：" + "、".join(x.value for x in output.missing_data),
+                    status="needs_input",
+                    used_intents=intents,
                 )
             if isinstance(output, LiuyaoInvocationResult):
                 values = output.output
@@ -155,10 +160,10 @@ class AgentSynthesizer:
                 status = getattr(question, "status", None)
                 interrupts = values.get("__interrupt__", ())
                 if interrupts:
-                    content = "请确认是否起卦：" + str(getattr(question, "clarified_question", ""))
+                    content = "先别急着落子，咱们把问题再对一遍：" + str(getattr(question, "clarified_question", ""))
                     response_status = "interrupted"
                 elif str(status) == "cancelled":
-                    content, response_status = "本次起卦已取消。", "cancelled"
+                    content, response_status = "行，这次先不落卦，停在这儿。", "cancelled"
                 else:
                     content = values.get("final_response") or values.get("clarification") or "请继续补充决策问题。"
                     response_status = "answered" if values.get("final_response") else "needs_input"

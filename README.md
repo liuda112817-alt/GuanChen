@@ -2,7 +2,7 @@
 
 > 传统文化智能推演与知识服务 AI Agent Application  
 > 建设基线：**GuanChen v2 冻结规划 v1.0**  
-> 当前状态：**Stage 1–10 已建设；本轮完整验收以统一基线报告为准**
+> 当前状态：**Stage 1–11 后端已建设；Bolt UI 对接与 Stage 12 仍为后续工作**
 
 ## 1. Overview
 
@@ -172,13 +172,15 @@ User Request
 
 ## 7. Current Implementation Status
 
-Stage 1–10 当前实现与验收见 [阶段状态](docs/stage_status.md) 和 [统一评测报告](reports/stage10_baseline/report.md)。
+Stage 1–11 后端当前实现与验收见 [阶段状态](docs/stage_status.md)、[Stage 11 后端 API 说明](docs/stage11_backend_api.md) 和 [统一评测报告](reports/stage11_final/report.md)。
+
+回答表达规范和模型 thinking 选择见 [回答表达设计](docs/response_style.md)。
 
 - 真实应用：`uv run python scripts/chat_cli.py`；依赖 `.env`、PostgreSQL + pgvector 和已导入语料。
 - MCP：官方 SDK v2、Streamable HTTP、三个复用领域 service 的工具，见 [使用说明](docs/mcp_usage.md)。内部 Agent 直接调用 service，MCP 用于外部应用互操作。
-- Evaluation：`uv run python scripts/run_evals.py` 一条命令重跑 Stage 1–10 的回归、集成、MCP、Router、Retrieval 和 20 个固定端到端场景，输出 JSON + Markdown，失败返回非零。
+- Evaluation：`uv run python scripts/run_evals.py --include-stage11` 一条命令重跑 Stage 1–11 后端的回归、集成、MCP、Router、Retrieval、固定端到端场景和真实 API 验收，输出 JSON + Markdown，失败返回非零。
 - Observability：LLM/token、Tool、Retrieval、Graph node 和每路由调用上限；日志 stderr，无需 LangSmith。
-- Stage 11（Safety / FastAPI / SSE / 前端）及 Stage 12（Redis / 部署）仍为后续建设。
+- Stage 11 后端（Safety / FastAPI / SSE / API contract）已完成；Bolt UI 对接及 Stage 12（Redis / 部署）仍为后续建设。
 
 ---
 
@@ -207,4 +209,4 @@ Stage 1–10 当前实现与验收见 [阶段状态](docs/stage_status.md) 和 [
 4. 新想法进入 v2.1 Backlog；
 5. 只有正确性、安全性或不可运行的阻塞问题可以触发最小方案变更，并记录 ADR。
 
-进入 Stage 11 之前，以 `scripts/run_evals.py` 生成的完整基线和本轮代码 review 结论为准。
+Stage 1–11 后端以 `scripts/run_evals.py --include-stage11` 生成的统一报告和 [完整 review 结论](docs/stage1_stage11_backend_review_2026-09-19.md) 为准。

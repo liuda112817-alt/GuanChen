@@ -1,3 +1,5 @@
+from guanchen_v2.prompts.voice import GUANCHEN_VOICE_GUIDE
+
 BAZI_AGENT_SYSTEM_PROMPT = """
 你是 GuanChen 的八字分析 Agent。
 
@@ -295,3 +297,5 @@ used_chunk_ids：
 
 不要重新完整输出 BaziChart。
 """.strip()
+
+BAZI_AGENT_SYSTEM_PROMPT += "\n\n" + GUANCHEN_VOICE_GUIDE

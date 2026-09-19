@@ -14,6 +14,9 @@ LogLevel = Literal[
     "CRITICAL",
 ]
 
+ThinkingMode = Literal["disabled", "enabled"]
+ReasoningEffort = Literal["low", "high", "max"]
+
 
 class DatabaseSettings(BaseSettings):
     """
@@ -41,7 +44,12 @@ class DatabaseSettings(BaseSettings):
     )
 
 
-class Settings(DatabaseSettings):
+class APISettings(DatabaseSettings):
+    api_cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173", "http://localhost:3000"])
+    api_timeout_seconds: float = Field(default=180, gt=0, le=600)
+
+
+class Settings(APISettings):
     """
     GuanChen 完整应用配置。
 
@@ -56,6 +64,11 @@ class Settings(DatabaseSettings):
     deepseek_api_key: SecretStr = Field(min_length=1)
 
     deepseek_model: str = Field(min_length=1)
+
+    # Visible answer style does not require chain-of-thought. Keep the fast
+    # path as the default and make deeper reasoning an explicit switch.
+    deepseek_thinking_mode: ThinkingMode = "disabled"
+    deepseek_reasoning_effort: ReasoningEffort = "low"
 
     llm_temperature: float = Field(
         default=0.2,

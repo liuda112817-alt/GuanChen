@@ -29,3 +29,4 @@ class SynthesizedResponse(BaseModel):
     citations: tuple[Citation, ...] = ()
 
     facts: dict = Field(default_factory=dict)
+    output_blocked: bool = False

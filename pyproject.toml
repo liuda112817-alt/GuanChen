@@ -29,6 +29,8 @@ dependencies = [
     "sqlalchemy>=2.0.52",
     "torch>=2.14.0",
     "mcp>=2,<3",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.28.0",
 ]
 
 [build-system]
