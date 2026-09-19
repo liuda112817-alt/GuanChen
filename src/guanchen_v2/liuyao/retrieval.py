@@ -36,10 +36,19 @@ class LiuyaoRetrievalBuilder:
         queries = build_liuyao_queries(question_text, hexagram)
         all_results = []
         seen = set()
+        identities = [hexagram.primary_hexagram]
+        if hexagram.changed_hexagram is not None:
+            identities.append(hexagram.changed_hexagram)
+        matching_sections = {f"{h.upper_trigram}上{h.lower_trigram}下" for h in identities}
 
         for query in queries:
             results = await self._retrieval_service.retrieve(query, filters=LIUYAO_RETRIEVAL_FILTER)
             for res in results:
+                # The corpus's Zhouyi chapter metadata includes the exact upper/lower
+                # trigrams. A shared trigram or line number does not make another
+                # hexagram's judgement applicable to this cast.
+                if res.source_title.strip("《》") == "周易" and not any(key in "".join(res.section.split()) for key in matching_sections):
+                    continue
                 if res.chunk_id not in seen:
                     seen.add(res.chunk_id)
                     all_results.append(res)

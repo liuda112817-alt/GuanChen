@@ -1,3 +1,4 @@
+from guanchen_v2.bazi.formatting import render_bazi_facts
 from guanchen_v2.dream.runtime import DreamAgentResult
 from guanchen_v2.llm.client import LLMClient
 from guanchen_v2.router.adapters.liuyao import LiuyaoInvocationResult
@@ -17,6 +18,8 @@ SYNTHESIZER_PROMPT = """
 - 整理 Agent 输出
 - 合并信息表达
 - 帮助用户理解不同 Agent 提供的参考内容
+八字的确定性排盘表、起运偏移、日期和年龄由应用代码直接展示。
+不要在整理文字中重新抄写或改写这些数值、单位、四柱或藏干清单。
 
 你不是专业分析 Agent。
 你不能重新执行任何领域推理。
@@ -175,6 +178,7 @@ class AgentSynthesizer:
                     thread_id=output.thread_id,
                     status=response_status,
                     citations=tuple(values.get("citations", ())),
+                    facts=hexagram.model_dump(mode="json") if hexagram is not None else {},
                 )
             if isinstance(output, DreamAgentResult):
                 content = output.clarification_question or (
@@ -184,6 +188,8 @@ class AgentSynthesizer:
             content = getattr(output, "answer", None) or getattr(output, "content", None)
             if content is not None:
                 facts = output.chart.model_dump(mode="json") if hasattr(output, "chart") else {}
+                if hasattr(output, "chart"):
+                    content = render_bazi_facts(output.chart) + "\n\n【传统解释与现实反思】\n" + content
                 return SynthesizedResponse(content=content, used_intents=intents, citations=tuple(getattr(output, "citations", ())), facts=facts)
         if len(synthesis_input.results) == 2:
             workflow = next((r for r in synthesis_input.results if isinstance(r.output, LiuyaoInvocationResult)), None)
@@ -197,6 +203,7 @@ class AgentSynthesizer:
                             "content": other_response.content + "\n\n" + projected.content,
                             "used_intents": tuple(r.intent for r in synthesis_input.results),
                             "citations": (*other_response.citations, *projected.citations),
+                            "facts": {other.intent.value: other_response.facts, workflow.intent.value: projected.facts},
                         }
                     )
         formatted_blocks = []
@@ -211,5 +218,28 @@ class AgentSynthesizer:
             schema=SynthesisDraft,
         )
 
-        citations = tuple(c for r in synthesis_input.results for c in getattr(r.output, "citations", ()))
-        return SynthesizedResponse(content=response.content, used_intents=tuple(r.intent for r in synthesis_input.results), citations=citations)
+        # Preserve authoritative facts and nested workflow citations through dual synthesis.
+        citations = []
+        facts = {}
+        thread_id = None
+        fact_blocks = []
+        for result in synthesis_input.results:
+            output = result.output
+            if isinstance(output, LiuyaoInvocationResult):
+                values = output.output if isinstance(output.output, dict) else {}
+                citations.extend(values.get("citations", ()))
+                if values.get("hexagram") is not None:
+                    facts[result.intent.value] = values["hexagram"].model_dump(mode="json")
+                thread_id = output.thread_id
+            else:
+                citations.extend(getattr(output, "citations", ()))
+                if hasattr(output, "chart"):
+                    facts[result.intent.value] = output.chart.model_dump(mode="json")
+                    fact_blocks.append(render_bazi_facts(output.chart))
+        return SynthesizedResponse(
+            content="\n\n".join([*fact_blocks, response.content]),
+            used_intents=tuple(r.intent for r in synthesis_input.results),
+            citations=tuple(citations),
+            facts=facts,
+            thread_id=thread_id,
+        )

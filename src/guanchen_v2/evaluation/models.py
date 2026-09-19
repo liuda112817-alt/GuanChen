@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any
 
+
 @dataclass
 class EvaluationCase:
     id: str
@@ -8,6 +9,7 @@ class EvaluationCase:
     input: dict[str, Any]
     expected: dict[str, Any] | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass
 class EvaluationResult:

@@ -2,7 +2,7 @@
 
 > 传统文化智能推演与知识服务 AI Agent Application  
 > 建设基线：**GuanChen v2 冻结规划 v1.0**  
-> 当前状态：**Stage 8 — Memory + Persistence 已通过验收（Stage 0–8 完成）**
+> 当前状态：**Stage 1–10 已建设；本轮完整验收以统一基线报告为准**
 
 ## 1. Overview
 
@@ -172,47 +172,13 @@ User Request
 
 ## 7. Current Implementation Status
 
-### 已完成：Stage 0 – Stage 8
+Stage 1–10 当前实现与验收见 [阶段状态](docs/stage_status.md) 和 [统一评测报告](reports/stage10_baseline/report.md)。
 
-| Stage | 主题 | 状态 |
-|---:|---|---|
-| 0 | Product / Domain / Architecture Freeze | 完成 |
-| 1 | Engineering Skeleton + LLM Foundation | 完成 |
-| 2 | Bazi Deterministic Tool | 完成 |
-| 3 | Bazi Agent Vertical Slice | 完成 |
-| 4 | Shared RAG + Knowledge Agent | 完成 |
-| 5 | Dream Agent + Context Engineering | 完成 |
-| 6 | Liuyao Agent + LangGraph HITL | 完成 |
-| 7 | Router + Multi-Agent Orchestration | 完成 |
-| 8 | Memory + Persistence | 完成（本阶段） |
-
-### Stage 8 交付摘要
-
-- **Postgres 域表**：`user_profile` / `birth_profile` / `conversation` / `message` / `dream_record` / `decision_record` + `conversation_states`（SQLAlchemy async、FK 级联、索引、`created_at` / `updated_at`）。
-- **SQLAlchemy async repository 层**：UserProfile / BirthProfile（upsert = 用户更正覆盖语义）/ Conversation（幂等 append）/ DreamRecord / DecisionRecord。
-- **LangGraph PostgreSQL 持久 checkpointer**：官方 `AsyncPostgresSaver` + `AsyncConnectionPool` 封装（`memory/checkpointer.py`），六爻 HITL 线程跨进程可恢复。
-- **Memory Selector 领域隔离**：BAZI 只注入 `BIRTH_PROFILE`；LIUYAO 在待确认状态注入决策问题种子；DREAM / KNOWLEDGE / CHITCHAT 不注入任何历史记忆——不把全历史无脑塞给模型。
-- **长期记忆写回**：八字执行成功后持久化出生资料（重启免重问）；六爻每次决策持久化 `DecisionRecord`（含 thread_id，支持 `resume` 接力）。
-- **三类必测全绿**：持久化 / 恢复 / 隔离（见 `tests/` 与 `docs/stage_status.md`）。
-
-### 验证状态
-
-```text
-默认套件：358 passed, 43 deselected
-集成套件（-m integration，含 Stage 8 Memory）：42 passed
-静态检查：ruff check src tests scripts 通过
-Stage 7 路由 Eval（full-chain）：黄金集 65 条，primary / secondary accuracy 均 100%
-Stage 4 Retrieval Eval：45 条，RRF Recall@5=0.9111；reranker 未通过 Gate，生产保持关闭
-Stage 4 Knowledge Agent：10/10 真实回答 citation lineage 通过
-Stage 8 应用验收：32 个真实入口场景通过
-```
-
-### 尚未实现（目标架构，后续 Stage）
-
-- MCP Server（Stage 9）
-- Evaluation + Observability runtime（Stage 10）
-- FastAPI / SSE / 前端集成（Stage 11）
-- Redis、生产部署（Stage 12）
+- 真实应用：`uv run python scripts/chat_cli.py`；依赖 `.env`、PostgreSQL + pgvector 和已导入语料。
+- MCP：官方 SDK v2、Streamable HTTP、三个复用领域 service 的工具，见 [使用说明](docs/mcp_usage.md)。内部 Agent 直接调用 service，MCP 用于外部应用互操作。
+- Evaluation：`uv run python scripts/run_evals.py` 一条命令重跑 Stage 1–10 的回归、集成、MCP、Router、Retrieval 和 20 个固定端到端场景，输出 JSON + Markdown，失败返回非零。
+- Observability：LLM/token、Tool、Retrieval、Graph node 和每路由调用上限；日志 stderr，无需 LangSmith。
+- Stage 11（Safety / FastAPI / SSE / 前端）及 Stage 12（Redis / 部署）仍为后续建设。
 
 ---
 
@@ -241,17 +207,4 @@ Stage 8 应用验收：32 个真实入口场景通过
 4. 新想法进入 v2.1 Backlog；
 5. 只有正确性、安全性或不可运行的阻塞问题可以触发最小方案变更，并记录 ADR。
 
-当前 Stage 9（MCP Standardization）尚未开始；Stage 8 Gate 已通过，可进入 Stage 9。
-
-## 当前状态
-Stage 10 — Evaluation + Observability 已完成 (Stage 0–10 完成)
-
-**Evaluation:**
-- Capability Evaluation Framework
-- Bazi / Knowledge / Liuyao Evaluation Suite
-- Stage 10 Report
-
-**Observability:**
-- TraceContext & Structured Events
-- Runtime Metrics Snapshot
-- Application Trace & MCP Trace
+进入 Stage 11 之前，以 `scripts/run_evals.py` 生成的完整基线和本轮代码 review 结论为准。

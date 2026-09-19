@@ -21,6 +21,7 @@ from guanchen_v2.liuyao.retrieval import LiuyaoRetrievalBuilder
 from guanchen_v2.liuyao.state import LiuyaoState
 from guanchen_v2.llm.client import LLMClient
 from guanchen_v2.models.liuyao import CastingMethod, DecisionQuestionStatus, DecisionReflection
+from guanchen_v2.observability.decorators import trace
 from guanchen_v2.prompts.liuyao_agent import (
     LIUYAO_CLARIFICATION_SYSTEM_PROMPT,
     LIUYAO_CLARIFICATION_USER_TEMPLATE,
@@ -55,6 +56,7 @@ class LiuyaoAgentRuntime:
         self._retrieval_builder = retrieval_builder
         self._checkpointer = checkpointer or InMemorySaver()
 
+    @trace("liuyao.clarify", "NODE")
     async def clarify_node(self, state: LiuyaoState) -> dict:
         q = state["question"]
         pending = state.get("pending_user_input", "")
@@ -71,6 +73,7 @@ class LiuyaoAgentRuntime:
 
         return apply_clarification_assessment(state, assessment)
 
+    @trace("liuyao.confirmation", "NODE")
     def confirmation_node(self, state: LiuyaoState) -> dict:
         q = state["question"]
         resume_payload = interrupt(
@@ -87,6 +90,7 @@ class LiuyaoAgentRuntime:
             raise LiuyaoPolicyError("无效的六爻确认响应") from exc
         return apply_confirmation_response(state, response)
 
+    @trace("liuyao.cast", "NODE")
     def cast_node(self, state: LiuyaoState) -> dict:
         if not can_cast(state):
             raise LiuyaoPolicyError("状态机未就绪或未通过用户确认，拒绝执行起卦操作")
@@ -104,6 +108,7 @@ class LiuyaoAgentRuntime:
 
         return {"hexagram": hexagram}
 
+    @trace("liuyao.retrieve", "NODE")
     async def retrieve_node(self, state: LiuyaoState) -> dict:
         if not can_cast(state):
             raise LiuyaoPolicyError("未通过确认检查，禁止检索")
@@ -121,6 +126,7 @@ class LiuyaoAgentRuntime:
 
         return {"retrieved_context": results, "citations": citations}
 
+    @trace("liuyao.interpret", "NODE")
     async def interpret_node(self, state: LiuyaoState) -> dict:
         if not can_cast(state):
             raise LiuyaoPolicyError("未通过确认检查，禁止生成六爻决策反思")
@@ -151,6 +157,7 @@ class LiuyaoAgentRuntime:
         )
         return {"reflection": reflection}
 
+    @trace("liuyao.finalize", "NODE")
     def finalize_node(self, state: LiuyaoState) -> dict:
         reflection = state.get("reflection")
         if not reflection:

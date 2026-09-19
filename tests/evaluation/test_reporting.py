@@ -5,9 +5,7 @@ from guanchen_v2.evaluation.reporting import (
 
 
 def test_report_models():
-    summary = CapabilityEvaluationSummary(
-        "test.cap", 10, 9, 1, 0.9, 15.5
-    )
+    summary = CapabilityEvaluationSummary("test.cap", 10, 9, 1, 0.9, 15.5)
     report = Stage10EvaluationReport(
         generated_at="2026-09-18T10:00:00Z",
         capabilities=[summary],

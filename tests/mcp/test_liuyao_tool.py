@@ -1,31 +1,24 @@
 import json
 
-import mcp.types as types
 import pytest
+from mcp.server.mcpserver.exceptions import ToolError
 
 from guanchen_v2.mcp.server import GuanChenMCPServer
+from guanchen_v2.models.liuyao import HexagramResult
 
 
 @pytest.mark.asyncio
 async def test_mcp_liuyao_tool():
-    """Test 3: 验证 liuyao.cast_hexagram 返回无状态卦象"""
     app = GuanChenMCPServer()
-    call_tool_handler = app.server.request_handlers[types.CallToolRequest]
-    
-    response = await call_tool_handler(
-        types.CallToolRequest(
-            method="tools/call",
-            params=types.CallToolRequestParams(
-                name="liuyao.cast_hexagram",
-                arguments={"question": "近期事业发展", "method": "random"}
-            )
-        )
-    )
-    
-    assert response.root.isError is not True
-    result_text = response.root.content[0].text
-    data = json.loads(result_text)
-    
-    assert "ben_gua" in data
-    assert "bian_gua" in data
-    assert "dong_yao" in data
+    result = await app.server.call_tool("cast_hexagram", {"request": {"method": "manual", "manual": {"lines": [7, 8, 7, 8, 7, 8]}}})
+    assert not result.is_error
+    facts = HexagramResult.model_validate(json.loads(result.content[0].text))
+    assert len(facts.lines) == 6
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("payload", [{"method": "typo"}, {"method": "manual"}, {"method": "random", "manual": {"lines": [7] * 6}}])
+async def test_invalid_method_never_casts(payload):
+    app = GuanChenMCPServer()
+    with pytest.raises(ToolError):
+        await app.server.call_tool("cast_hexagram", {"request": payload})

@@ -1,6 +1,7 @@
 from guanchen_v2.bazi.adapter import LunarPythonBaziAdapter
 from guanchen_v2.bazi.exceptions import BaziAdapterError, BaziCalculationError
 from guanchen_v2.models.bazi import BaziChart, BirthProfile
+from guanchen_v2.observability.decorators import trace
 
 
 class BaziService:
@@ -9,6 +10,7 @@ class BaziService:
     def __init__(self, adapter: LunarPythonBaziAdapter) -> None:
         self._adapter = adapter
 
+    @trace("calculate_bazi", "TOOL")
     def calculate(self, profile: BirthProfile) -> BaziChart:
         """执行确定性排盘。发生异常时不进行重试，并封装为纯业务异常抛出。"""
         try:

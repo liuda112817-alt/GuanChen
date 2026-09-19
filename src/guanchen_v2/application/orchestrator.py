@@ -304,6 +304,7 @@ class ConversationOrchestrator:
             "task_query": task_query,
         }
 
+    @trace("requirements", "NODE")
     async def _requirements(
         self,
         turn: TurnState,
@@ -484,6 +485,7 @@ class ConversationOrchestrator:
             "context": context,
         }
 
+    @trace("agents", "NODE")
     async def _agents(
         self,
         turn: TurnState,
@@ -627,6 +629,7 @@ class ConversationOrchestrator:
             "results": results,
         }
 
+    @trace("response", "NODE")
     async def _response(
         self,
         turn: TurnState,
@@ -696,6 +699,7 @@ class ConversationOrchestrator:
             "response": response,
         }
 
+    @trace("persist", "NODE")
     async def _persist(
         self,
         turn: TurnState,

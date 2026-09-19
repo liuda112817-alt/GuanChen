@@ -15,3 +15,7 @@ wheels/
 # Testing & Linting
 .pytest_cache/
 .ruff_cache/
+
+# Local evaluation diagnostics (JSON / Markdown baselines remain tracked)
+reports/**/*.log
+reports/**/*.xml

@@ -11,6 +11,7 @@ from guanchen_v2.models.liuyao import (
     HexagramResult,
     LineValue,
 )
+from guanchen_v2.observability.decorators import trace
 
 SixLineValues = tuple[LineValue, LineValue, LineValue, LineValue, LineValue, LineValue]
 
@@ -38,6 +39,7 @@ class HexagramCastingService:
         self._adapter = adapter
         self._random = random_source
 
+    @trace("cast_hexagram", "TOOL")
     def cast_manual(self, input_data: ManualCastingInput) -> HexagramResult:
         facts = self._adapter.resolve_facts(input_data.lines)
         return HexagramResult(
@@ -49,6 +51,7 @@ class HexagramCastingService:
             coin_tosses=[],
         )
 
+    @trace("cast_hexagram", "TOOL")
     def cast_random(self) -> HexagramResult:
         tosses = []
         line_values = []

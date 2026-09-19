@@ -2,6 +2,7 @@ import json
 import logging
 import sys
 from dataclasses import asdict
+
 from guanchen_v2.observability.events import ObservabilityEvent
 
 logger = logging.getLogger("guanchen.observability")
@@ -13,6 +14,7 @@ if not logger.handlers:
     handler = logging.StreamHandler(sys.stderr)
     handler.setLevel(logging.INFO)
     logger.addHandler(handler)
+
 
 def log_event(event: ObservabilityEvent) -> str:
     event_dict = asdict(event)

@@ -10,6 +10,7 @@ from guanchen_v2.liuyao.policy import ConfirmationResponse
 from guanchen_v2.liuyao.state import create_initial_liuyao_state
 from guanchen_v2.liuyao.workflow import LiuyaoAgentRuntime
 from guanchen_v2.models.liuyao import DecisionQuestionStatus, DecisionRecord
+from guanchen_v2.observability.decorators import trace
 from guanchen_v2.router.contracts import RequiredDataType
 from guanchen_v2.router.errors import RouterDispatchError
 from guanchen_v2.router.requirements import RequirementContext
@@ -73,6 +74,7 @@ class LiuyaoAgentAdapter:
         await self._persist_decision_record(thread_id, snapshot)
         return output
 
+    @trace("liuyao", "AGENT")
     async def invoke(self, query: str, context: RequirementContext, agent_state: dict[str, Any] | None = None) -> LiuyaoInvocationResult:
         if agent_state is None:
             agent_state = {}

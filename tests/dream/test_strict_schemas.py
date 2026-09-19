@@ -103,3 +103,16 @@ def test_dream_interpretation_json_schema_is_strict():
     schema = DreamInterpretationDraft.model_json_schema()
 
     assert schema["additionalProperties"] is False
+
+
+def test_uncited_traditional_text_is_discarded_without_inventing_evidence():
+    draft = DreamInterpretationDraft(traditional_view="无引用的传统断言", psychological_context_view="可讨论用户自己的感受。")
+    assert draft.traditional_view is None
+    assert draft.used_chunk_ids == []
+    assert draft.psychological_context_view == "可讨论用户自己的感受。"
+
+
+def test_unused_citations_are_not_returned_as_sources():
+    draft = DreamInterpretationDraft(traditional_view=None, used_chunk_ids=["unused-id"], psychological_context_view="反思")
+    assert draft.traditional_view is None
+    assert draft.used_chunk_ids == []

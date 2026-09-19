@@ -1,0 +1,309 @@
+[
+  {
+    "id": "knowledge-1",
+    "route": "knowledge",
+    "turns": [
+      {
+        "query": "什么是八字",
+        "status": "answered",
+        "citations": true
+      }
+    ],
+    "manual_review": "事实与引用原文相符；无个人命运推断，不索取出生资料。"
+  },
+  {
+    "id": "knowledge-2",
+    "route": "knowledge",
+    "turns": [
+      {
+        "query": "正官是什么意思",
+        "status": "answered",
+        "citations": true
+      }
+    ],
+    "manual_review": "事实与引用原文相符；无个人命运推断，不索取出生资料。"
+  },
+  {
+    "id": "knowledge-3",
+    "route": "knowledge",
+    "turns": [
+      {
+        "query": "正印是什么意思",
+        "status": "answered",
+        "citations": true
+      }
+    ],
+    "manual_review": "事实与引用原文相符；无个人命运推断，不索取出生资料。"
+  },
+  {
+    "id": "knowledge-4",
+    "route": "knowledge",
+    "turns": [
+      {
+        "query": "五行相生的顺序是什么",
+        "status": "answered",
+        "citations": true
+      }
+    ],
+    "manual_review": "事实与引用原文相符；无个人命运推断，不索取出生资料。"
+  },
+  {
+    "id": "knowledge-5",
+    "route": "knowledge",
+    "turns": [
+      {
+        "query": "六爻中的世应是什么",
+        "status": "answered",
+        "citations": true
+      }
+    ],
+    "manual_review": "事实与引用原文相符；无个人命运推断，不索取出生资料。"
+  },
+  {
+    "id": "bazi-missing",
+    "route": "bazi",
+    "turns": [
+      {
+        "query": "我的八字事业怎么样",
+        "status": "needs_input"
+      }
+    ],
+    "manual_review": "缺出生资料仅追问，不调用排盘。"
+  },
+  {
+    "id": "bazi-partial-complete",
+    "route": "bazi",
+    "turns": [
+      {
+        "query": "我的八字事业怎么样",
+        "status": "needs_input"
+      },
+      {
+        "query": "补充出生资料",
+        "status": "needs_input",
+        "birth_patch": {
+          "year": 1992,
+          "month": 8,
+          "day": 18,
+          "hour": 10,
+          "minute": 0
+        }
+      },
+      {
+        "query": "补充性别",
+        "status": "answered",
+        "birth_patch": {
+          "gender": "male"
+        }
+      }
+    ],
+    "manual_review": "补齐后计算一次，四柱来自工具。"
+  },
+  {
+    "id": "bazi-correction",
+    "route": "bazi",
+    "turns": [
+      {
+        "query": "我的八字感情怎么样",
+        "status": "answered",
+        "birth_patch": {
+          "year": 1992,
+          "month": 8,
+          "day": 18,
+          "hour": 10,
+          "minute": 0,
+          "gender": "male"
+        }
+      },
+      {
+        "query": "更正出生时间，看看我的八字感情",
+        "status": "answered",
+        "birth_patch": {
+          "hour": 16,
+          "minute": 30
+        }
+      }
+    ],
+    "manual_review": "修改时间后重新排盘；结果不得沿用旧时柱。"
+  },
+  {
+    "id": "bazi-persisted",
+    "route": "bazi",
+    "turns": [
+      {
+        "query": "我的八字事业怎么样",
+        "status": "answered",
+        "birth_patch": {
+          "year": 1992,
+          "month": 8,
+          "day": 18,
+          "hour": 10,
+          "minute": 0,
+          "gender": "male"
+        }
+      },
+      {
+        "query": "我的八字人际关系怎么样",
+        "status": "answered"
+      }
+    ],
+    "manual_review": "新运行实例复用已保存资料，不重复要求资料。"
+  },
+  {
+    "id": "dream-single",
+    "route": "dream",
+    "turns": [
+      {
+        "query": "我昨晚梦见在河边和爸爸散步，水很清，感觉轻松，请解释这个梦。",
+        "status": "answered"
+      }
+    ],
+    "manual_review": "区分传统象征与现实反思，不预测必然事件。"
+  },
+  {
+    "id": "dream-context",
+    "route": "dream",
+    "turns": [
+      {
+        "query": "我昨晚梦见在河边和爸爸散步，水很清，感觉轻松，请解释这个梦。",
+        "status": "answered"
+      },
+      {
+        "query": "补充现实背景：最近工作压力很大，常常加班。",
+        "status": "answered"
+      }
+    ],
+    "manual_review": "同一梦境保留并补充现实背景。"
+  },
+  {
+    "id": "dream-correction",
+    "route": "dream",
+    "turns": [
+      {
+        "query": "我昨晚梦见在河边和爸爸散步，水很清，感觉轻松，请解释这个梦。",
+        "status": "answered"
+      },
+      {
+        "query": "更正一下，不是爸爸，是哥哥和我散步。",
+        "status": "answered"
+      }
+    ],
+    "manual_review": "更正人物覆盖旧信息。"
+  },
+  {
+    "id": "dream-new",
+    "route": "dream",
+    "turns": [
+      {
+        "query": "我昨晚梦见在河边和爸爸散步，水很清，感觉轻松，请解释这个梦。",
+        "status": "answered"
+      },
+      {
+        "query": "换一个梦：我在山上独自飞翔，感觉非常自由。",
+        "status": "answered"
+      }
+    ],
+    "manual_review": "新梦不串入上个梦的人物。"
+  },
+  {
+    "id": "liuyao-interrupt",
+    "route": "liuyao",
+    "turns": [
+      {
+        "query": "帮我起一卦，未来三个月是否接受新公司的工程师职位？收入增加但通勤更远。",
+        "status": "interrupted"
+      }
+    ],
+    "manual_review": "确认前无卦象、无随机工具调用。"
+  },
+  {
+    "id": "liuyao-cancel",
+    "route": "liuyao",
+    "turns": [
+      {
+        "query": "帮我起一卦，未来三个月是否接受新公司的工程师职位？收入增加但通勤更远。",
+        "status": "interrupted"
+      },
+      {
+        "query": "我不确认，取消",
+        "status": "cancelled"
+      }
+    ],
+    "manual_review": "明确取消不应起卦。"
+  },
+  {
+    "id": "liuyao-confirm",
+    "route": "liuyao",
+    "turns": [
+      {
+        "query": "帮我起一卦，未来三个月是否接受新公司的工程师职位？收入增加但通勤更远。",
+        "status": "interrupted"
+      },
+      {
+        "query": "确认",
+        "status": "answered"
+      }
+    ],
+    "manual_review": "确认后只起卦一次，展示真实起卦方法及六爻，非确定预言。"
+  },
+  {
+    "id": "liuyao-modify",
+    "route": "liuyao",
+    "turns": [
+      {
+        "query": "帮我起一卦，未来三个月是否接受新公司的工程师职位？收入增加但通勤更远。",
+        "status": "interrupted"
+      },
+      {
+        "query": "修改问题：未来三个月是否留在目前公司继续做工程师？",
+        "status": "interrupted"
+      },
+      {
+        "query": "确认",
+        "status": "answered"
+      }
+    ],
+    "manual_review": "修改问题重新确认，仍只有一次起卦。"
+  },
+  {
+    "id": "dual-bazi-dream",
+    "route": "bazi+dream",
+    "turns": [
+      {
+        "query": "结合我的八字和昨晚的梦一起看，我梦见在海边散步，感觉平静，想了解事业方向。",
+        "status": "answered",
+        "birth_patch": {
+          "year": 1992,
+          "month": 8,
+          "day": 18,
+          "hour": 10,
+          "minute": 0,
+          "gender": "male"
+        }
+      }
+    ],
+    "manual_review": "两个领域分开事实来源，不把梦当排盘事实。"
+  },
+  {
+    "id": "chitchat",
+    "route": "chitchat",
+    "turns": [
+      {
+        "query": "你好",
+        "status": "answered"
+      }
+    ],
+    "manual_review": "轻量回答，无业务工具。"
+  },
+  {
+    "id": "out-of-scope",
+    "route": "out_of_scope",
+    "turns": [
+      {
+        "query": "帮我写一个Python爬虫程序",
+        "status": "answered"
+      }
+    ],
+    "manual_review": "边界说明，无业务工具。"
+  }
+]

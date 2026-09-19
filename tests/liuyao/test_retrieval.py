@@ -1,8 +1,11 @@
+from dataclasses import replace
 from unittest.mock import AsyncMock
 
 import pytest
 
 from guanchen_v2.knowledge.models import KnowledgeDomain, RetrievalResult, SourceType
+from guanchen_v2.liuyao.casting import HexagramCastingService, ManualCastingInput, SystemRandomCoinSource
+from guanchen_v2.liuyao.iching_adapter import IChingPyAdapter
 from guanchen_v2.liuyao.retrieval import LIUYAO_RETRIEVAL_FILTER, LiuyaoRetrievalBuilder
 from guanchen_v2.models.liuyao import CastingMethod, HexagramIdentity, HexagramLine, HexagramResult, LineValue, YinYang
 
@@ -55,3 +58,18 @@ async def test_liuyao_retrieval_builder_dedupes_and_filters():
     assert mock_shared_service.retrieve.call_count == 2
     for call in mock_shared_service.retrieve.call_args_list:
         assert call.kwargs["filters"] == LIUYAO_RETRIEVAL_FILTER
+
+
+@pytest.mark.asyncio
+async def test_other_hexagram_judgements_cannot_enter_current_cast_evidence():
+    service = HexagramCastingService(IChingPyAdapter(), SystemRandomCoinSource())
+    facts = service.cast_manual(ManualCastingInput(lines=(8, 7, 7, 6, 9, 8)))
+    shared = AsyncMock()
+    shared.retrieve.return_value = [
+        replace(create_mock_result("wrong"), source_title="《周易》", section="第五十七卦 巽 巽上巽下"),
+        replace(create_mock_result("primary"), source_title="《周易》", section="第四十八卦 井 坎上巽下"),
+        replace(create_mock_result("changed"), source_title="《周易》", section="第三十二卦 恒 震上巽下"),
+        create_mock_result("general"),
+    ]
+    results = await LiuyaoRetrievalBuilder(shared).retrieve("职业选择", facts)
+    assert {r.chunk_id for r in results} == {"primary", "changed", "general"}

@@ -1,6 +1,6 @@
 # GuanChen v2 Stage Implementation Status
 
-> Last Updated: 2026-09-18
+> Last Updated: 2026-09-19
 
 ## Purpose
 
@@ -31,6 +31,8 @@ It only describes the current implementation state.
 | Stage 6 | Liuyao HITL Workflow | Completed |
 | Stage 7 | Multi-Agent Router | Completed |
 | Stage 8 | Memory Persistence | Completed |
+| Stage 9 | Official MCP v2 / Streamable HTTP | Implemented; see current baseline |
+| Stage 10 | Evaluation / Observability | Implemented; see current baseline |
 
 ---
 
@@ -427,4 +429,12 @@ This document should be updated when:
 3. A Stage moves from Partial to Completed.
 
 Small code changes should not update this document.
-\n- ✅ Stage 10: Evaluation & Observability Foundation Complete\n
+
+
+# Stage 9–10 当前交付
+
+MCP v2 / MCPServer、HTTP Bearer + scopes、三工具契约与真实 client smoke；AgentRun / RunStep、模型 token 与重试计数、工具预算、检索证据与图节点 hooks；统一完整评测入口与 20 场景数据集。
+
+上文 Stage 1–8 的统计是 2026-09-18 历史验收。当前结果统一查看 [完整基线](../reports/stage10_baseline/report.md)，不要把历史通过数作为本轮测试结果。
+
+运行：`uv run python scripts/run_evals.py`。技术边界及人工评价要求见 [evaluation_framework.md](evaluation_framework.md)。

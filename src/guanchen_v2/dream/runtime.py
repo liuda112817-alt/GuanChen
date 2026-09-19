@@ -32,6 +32,7 @@ from guanchen_v2.models.dream import (
     InterpretationStatus,
     NonBlankText,
 )
+from guanchen_v2.observability.integration import get_tracer
 from guanchen_v2.prompts.dream_agent import (
     DREAM_INTERPRETATION_SYSTEM_PROMPT,
     DREAM_INTERPRETATION_USER_TEMPLATE,
@@ -68,11 +69,17 @@ class DreamInterpretationDraft(BaseModel):
             if not chunk_id.strip():
                 raise ValueError("used_chunk_ids 不能包含空值。")
 
-        if self.traditional_view is None and self.used_chunk_ids:
-            raise ValueError("traditional_view 为空时，used_chunk_ids 必须为空。")
-
-        if self.traditional_view is not None and not self.used_chunk_ids:
-            raise ValueError("traditional_view 非空时，必须至少引用一个实际使用的 chunk_id。")
+        if (self.traditional_view is None and self.used_chunk_ids) or (self.traditional_view is not None and not self.used_chunk_ids):
+            # Fail closed on evidence, without repeatedly generating the same unsupported
+            # paragraph. Keep the independent psychological reflection; the runtime supplies
+            # its fixed insufficient-evidence text. Never invent or attach replacement IDs.
+            self.traditional_view = None
+            self.used_chunk_ids = []
+            tracer = get_tracer()
+            if tracer is not None:
+                with tracer.span("dream.evidence", "EVIDENCE_FILTER") as span:
+                    span.status = "DEGRADED"
+                    span.metadata["reason"] = "UnpairedTraditionalEvidenceDiscarded"
 
         return self
 

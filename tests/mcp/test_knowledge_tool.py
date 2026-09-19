@@ -1,44 +1,34 @@
-import json
-from unittest.mock import AsyncMock, MagicMock
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
-import mcp.types as types
 import pytest
 
+from guanchen_v2.knowledge.models import KnowledgeDomain, RetrievalResult, SourceType
 from guanchen_v2.mcp.server import GuanChenMCPServer
 
 
 @pytest.mark.asyncio
 async def test_mcp_knowledge_tool():
-    """Test 2: 验证 knowledge.search 调用链路与 Citation 返回"""
     app = GuanChenMCPServer()
-    
-    # Mock Database RetrievalService
-    mock_retrieval = AsyncMock()
-    mock_result = MagicMock()
-    mock_result.content = "【经文】测试内容"
-    mock_result.source_title = "滴天髓阐微"
-    mock_result.section = "天干"
-    mock_result.chunk_id = "chunk_001"
-    mock_retrieval.search.return_value = [mock_result]
-    
-    app._knowledge_adapter.service = mock_retrieval
-    
-    call_tool_handler = app.server.request_handlers[types.CallToolRequest]
-    response = await call_tool_handler(
-        types.CallToolRequest(
-            method="tools/call",
-            params=types.CallToolRequestParams(
-                name="knowledge.search",
-                arguments={"query": "五行生克制化"}
-            )
-        )
+    row = RetrievalResult(
+        rank=1,
+        chunk_id="c1",
+        document_id="d1",
+        domain=KnowledgeDomain.BAZI,
+        source_title="Book",
+        source_type=SourceType.PROJECT_NOTE,
+        section="s",
+        text="actual text",
+        rrf_score=0.1,
+        rrf_rank=1,
+        reranker_score=None,
+        dense_rank=1,
+        sparse_rank=1,
     )
-    
-    assert response.root.isError is not True
-    result_text = response.root.content[0].text
-    data = json.loads(result_text)
-    
-    assert "results" in data
-    assert data["results"][0]["citation"]["source_title"] == "滴天髓阐微"
-    
-    mock_retrieval.search.assert_awaited_once()
+    retrieval = SimpleNamespace(retrieve=AsyncMock(return_value=[row]))
+    app._knowledge_adapter.service = retrieval
+    result = await app.server.call_tool("knowledge_search", {"request": {"query": "五行", "filters": {"source_titles": ["Book"]}}})
+    assert not result.is_error
+    assert result.structured_content["results"][0]["content"] == "actual text"
+    assert result.structured_content["results"][0]["citation"]["document_id"] == "d1"
+    assert retrieval.retrieve.await_args.kwargs["filters"].source_titles == frozenset(["Book"])

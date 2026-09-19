@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from guanchen_v2.knowledge.models import KnowledgeDomain, RetrievalFilter, RetrievalResult
 from guanchen_v2.knowledge.retrieval.service import RetrievalService
+from guanchen_v2.observability.decorators import trace
 
 
 class BaziKnowledgeQuery(BaseModel):
@@ -36,6 +37,7 @@ def build_retrieve_bazi_knowledge_tool(retrieval_service: RetrievalService):
         args_schema=BaziKnowledgeQuery,
         response_format="content_and_artifact",
     )
+    @trace("retrieve_bazi_knowledge", "TOOL")
     async def retrieve_bazi_knowledge(query: str) -> tuple[str, BaziKnowledgeArtifact]:
         """
         当你需要解释 calculate_bazi 已明确返回的排盘事实，

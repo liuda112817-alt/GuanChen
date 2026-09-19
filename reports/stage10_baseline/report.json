@@ -1,0 +1,215 @@
+{
+  "generated_at": "2026-09-19T03:53:37.904992+00:00",
+  "base_commit": "110adb9f4e477d9bfcf9b0bd4ca3fd420157c6c2",
+  "working_tree_diff_sha256": "8dc5c663f18df98b8a8301ec56196ba8d653085723c2bda558a9d34b9c9472b3",
+  "dataset_sha256": {
+    "evals\\e2e\\stage10_cases.json": "3bd4ccdde6fd10b9542580e30db65679eaf2ff53d126d61de5a79fc0604b3e2e",
+    "evals\\retrieval\\stage4_retrieval_golden.json": "6833c6b54b61f8a5c274417c50c1457dde44666adc766ab9c9ea9666470a1603",
+    "evals\\router\\stage7_router_golden.json": "484aee6da23be3bfce569564e0907429e5537fb1d1c45c5bfe82d2898e529bd8"
+  },
+  "phases": [
+    {
+      "name": "regression",
+      "returncode": 0,
+      "started_at": "2026-09-19T03:49:38.856124+00:00",
+      "duration_seconds": 14.595191
+    },
+    {
+      "name": "integration",
+      "returncode": 0,
+      "started_at": "2026-09-19T03:49:53.451315+00:00",
+      "duration_seconds": 20.372483
+    },
+    {
+      "name": "mcp",
+      "returncode": 0,
+      "started_at": "2026-09-19T03:50:13.823798+00:00",
+      "duration_seconds": 30.369351
+    },
+    {
+      "name": "router",
+      "returncode": 0,
+      "started_at": "2026-09-19T03:50:44.199151+00:00",
+      "duration_seconds": 10.825235
+    },
+    {
+      "name": "retrieval",
+      "returncode": 0,
+      "started_at": "2026-09-19T03:50:55.031901+00:00",
+      "duration_seconds": 31.248006
+    },
+    {
+      "name": "e2e",
+      "returncode": 0,
+      "started_at": "2026-09-19T03:51:26.281909+00:00",
+      "duration_seconds": 131.59933
+    }
+  ],
+  "checks": {
+    "all_commands_completed": true,
+    "router": true,
+    "retrieval": true,
+    "mcp": true,
+    "end_to_end": true,
+    "cost_observed": true
+  },
+  "passed": true,
+  "regression": {
+    "total": 397,
+    "passed": 397,
+    "failed": 0,
+    "skipped": 0
+  },
+  "integration": {
+    "total": 42,
+    "passed": 42,
+    "failed": 0,
+    "skipped": 0
+  },
+  "bazi_fixtures": {
+    "total": 13,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0
+  },
+  "liuyao_fixtures_and_hitl": {
+    "total": 38,
+    "passed": 38,
+    "failed": 0,
+    "skipped": 0
+  },
+  "router_accuracy": 1.0,
+  "router_secondary_accuracy": 1.0,
+  "rag_recall_at_5": 0.9111111111111111,
+  "e2e_completion_rate": 1.0,
+  "provider_network_errors": 0,
+  "routes": {
+    "knowledge": {
+      "turns": 5,
+      "model_call_limit": 20,
+      "tool_call_limit": 4,
+      "model_calls_max": 1,
+      "model_calls_total": 5,
+      "tool_calls_max": 0,
+      "tool_calls_total": 0,
+      "p50_ms": 2970.47,
+      "p95_ms": 3170.72,
+      "token_usage": {
+        "input_tokens": 19517,
+        "output_tokens": 2393,
+        "total_tokens": 21910
+      },
+      "unknown_token_calls": 0,
+      "errors": {}
+    },
+    "bazi": {
+      "turns": 8,
+      "model_call_limit": 20,
+      "tool_call_limit": 4,
+      "model_calls_max": 3,
+      "model_calls_total": 11,
+      "tool_calls_max": 2,
+      "tool_calls_total": 10,
+      "p50_ms": 5669.26,
+      "p95_ms": 6916.69,
+      "token_usage": {
+        "input_tokens": 53431,
+        "output_tokens": 4641,
+        "total_tokens": 58072
+      },
+      "unknown_token_calls": 0,
+      "errors": {}
+    },
+    "dream": {
+      "turns": 7,
+      "model_call_limit": 20,
+      "tool_call_limit": 4,
+      "model_calls_max": 2,
+      "model_calls_total": 14,
+      "tool_calls_max": 0,
+      "tool_calls_total": 0,
+      "p50_ms": 3445.14,
+      "p95_ms": 3987.09,
+      "token_usage": {
+        "input_tokens": 44585,
+        "output_tokens": 2588,
+        "total_tokens": 47173
+      },
+      "unknown_token_calls": 0,
+      "errors": {}
+    },
+    "liuyao": {
+      "turns": 8,
+      "model_call_limit": 20,
+      "tool_call_limit": 4,
+      "model_calls_max": 1,
+      "model_calls_total": 7,
+      "tool_calls_max": 1,
+      "tool_calls_total": 2,
+      "p50_ms": 1167.63,
+      "p95_ms": 11004.87,
+      "token_usage": {
+        "input_tokens": 24503,
+        "output_tokens": 4195,
+        "total_tokens": 28698
+      },
+      "unknown_token_calls": 0,
+      "errors": {}
+    },
+    "bazi+dream": {
+      "turns": 1,
+      "model_call_limit": 20,
+      "tool_call_limit": 4,
+      "model_calls_max": 5,
+      "model_calls_total": 5,
+      "tool_calls_max": 2,
+      "tool_calls_total": 2,
+      "p50_ms": 10647.65,
+      "p95_ms": 10647.65,
+      "token_usage": {
+        "input_tokens": 19219,
+        "output_tokens": 2160,
+        "total_tokens": 21379
+      },
+      "unknown_token_calls": 0,
+      "errors": {}
+    },
+    "chitchat": {
+      "turns": 1,
+      "model_call_limit": 20,
+      "tool_call_limit": 4,
+      "model_calls_max": 0,
+      "model_calls_total": 0,
+      "tool_calls_max": 0,
+      "tool_calls_total": 0,
+      "p50_ms": 38.92,
+      "p95_ms": 38.92,
+      "token_usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0
+      },
+      "unknown_token_calls": 0,
+      "errors": {}
+    },
+    "out_of_scope": {
+      "turns": 1,
+      "model_call_limit": 20,
+      "tool_call_limit": 4,
+      "model_calls_max": 1,
+      "model_calls_total": 1,
+      "tool_calls_max": 0,
+      "tool_calls_total": 0,
+      "p50_ms": 923.88,
+      "p95_ms": 923.88,
+      "token_usage": {
+        "input_tokens": 2108,
+        "output_tokens": 91,
+        "total_tokens": 2199
+      },
+      "unknown_token_calls": 0,
+      "errors": {}
+    }
+  },
+  "reranker_enabled": false
+}

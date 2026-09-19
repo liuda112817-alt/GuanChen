@@ -7,6 +7,7 @@ from guanchen_v2.knowledge.retrieval.dense import DenseRetriever
 from guanchen_v2.knowledge.retrieval.rerank import KnowledgeReranker
 from guanchen_v2.knowledge.retrieval.rrf import ReciprocalRankFusion
 from guanchen_v2.knowledge.retrieval.sparse import SparseRetriever
+from guanchen_v2.observability.decorators import trace
 
 
 class RetrievalService:
@@ -44,6 +45,7 @@ class RetrievalService:
         self._result_limit = result_limit
         self._reranker_enabled = reranker_enabled
 
+    @trace("knowledge", "RETRIEVAL")
     async def retrieve(
         self,
         query: str,

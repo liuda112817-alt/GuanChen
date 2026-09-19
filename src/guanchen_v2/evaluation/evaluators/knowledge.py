@@ -1,7 +1,10 @@
 import time
+from dataclasses import asdict, is_dataclass
+
 from guanchen_v2.evaluation.evaluator import CapabilityEvaluator
 from guanchen_v2.evaluation.models import EvaluationCase, EvaluationResult
 from guanchen_v2.knowledge.retrieval.service import RetrievalService
+
 
 class KnowledgeEvaluator(CapabilityEvaluator):
     def __init__(self, service: RetrievalService, metrics=None):
@@ -13,11 +16,11 @@ class KnowledgeEvaluator(CapabilityEvaluator):
         try:
             query = case.input["query"]
             limit = case.input.get("top_k", 5)
-            
+
             # Ensure it awaits properly
-            results = await self.service.search(query=query, limit=limit)
-            output_dict = {"results": [getattr(r, "model_dump", lambda mode: r.__dict__)() for r in results]}
-            
+            results = (await self.service.retrieve(query=query))[:limit]
+            output_dict = {"results": [(asdict(r) if is_dataclass(r) else r.model_dump(mode="json")) for r in results]}
+
             success = True
             if case.expected and case.expected.get("required_citation"):
                 if not results:
@@ -30,7 +33,7 @@ class KnowledgeEvaluator(CapabilityEvaluator):
 
             latency = (time.perf_counter() - start_time) * 1000
             return EvaluationResult(case.id, self.capability, success, output_dict, None, latency)
-            
+
         except Exception as e:
             latency = (time.perf_counter() - start_time) * 1000
             return EvaluationResult(case.id, self.capability, False, None, str(e), latency)

@@ -2,6 +2,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_deepseek import ChatDeepSeek
 
 from guanchen_v2.config.settings import Settings
+from guanchen_v2.observability.llm_callback import ModelTraceCallback
 
 
 def build_chat_model(settings: Settings) -> BaseChatModel:
@@ -20,5 +21,6 @@ def build_chat_model(settings: Settings) -> BaseChatModel:
         temperature=settings.llm_temperature,
         timeout=settings.llm_timeout_seconds,
         max_retries=0,
+        callbacks=[ModelTraceCallback()],
         extra_body={"thinking": {"type": "disabled"}},
     )

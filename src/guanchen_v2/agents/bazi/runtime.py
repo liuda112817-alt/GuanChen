@@ -29,6 +29,7 @@ from guanchen_v2.knowledge.models import Citation
 from guanchen_v2.knowledge.retrieval.service import RetrievalService
 from guanchen_v2.llm.provider import build_chat_model
 from guanchen_v2.models.bazi import BaziChart
+from guanchen_v2.observability.decorators import trace
 from guanchen_v2.prompts.bazi_agent import BAZI_AGENT_SYSTEM_PROMPT
 from guanchen_v2.tools.bazi import build_calculate_bazi_tool
 from guanchen_v2.tools.bazi_retrieval import (
@@ -87,6 +88,7 @@ class BaziAgentRuntime:
             ),
         )
 
+    @trace("bazi", "AGENT")
     async def run(
         self,
         ready: ReadyForBazi,

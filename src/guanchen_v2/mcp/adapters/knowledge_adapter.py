@@ -1,38 +1,19 @@
 import json
-from typing import TYPE_CHECKING
-import mcp.types as types
-from guanchen_v2.knowledge.models import RetrievalFilter
-from guanchen_v2.mcp.tools.knowledge import KnowledgeSearchInput
-from guanchen_v2.observability.decorators import trace
+from dataclasses import asdict
 
-if TYPE_CHECKING:
-    from guanchen_v2.knowledge.retrieval.service import RetrievalService
+import mcp_types as types
+
+from guanchen_v2.knowledge.models import Citation
+from guanchen_v2.mcp.tools.knowledge import KnowledgeSearchInput
+
 
 class KnowledgeCapabilityAdapter:
-    def __init__(self, service: "RetrievalService | None" = None) -> None:
+    def __init__(self, service=None) -> None:
         self.service = service
 
-    @trace(component="knowledge", event_type="RETRIEVAL")
     async def search(self, request: KnowledgeSearchInput) -> types.CallToolResult:
-        if not self.service:
-            return types.CallToolResult(content=[types.TextContent(type="text", text="Knowledge retrieval service is not initialized.")], isError=True)
-
-        try:
-            filters = None
-            if request.filters and "book_name" in request.filters:
-                filters = RetrievalFilter(source_titles=frozenset([request.filters["book_name"]]))
-
-            results = await self.service.search(query=request.query, limit=request.top_k, filters=filters)
-
-            formatted_results = []
-            for r in results:
-                formatted_results.append({
-                    "content": r.content,
-                    "citation": {"source_title": r.source_title, "section": r.section, "chunk_id": r.chunk_id}
-                })
-
-            response_data = {"results": formatted_results}
-            return types.CallToolResult(content=[types.TextContent(type="text", text=json.dumps(response_data, ensure_ascii=False))])
-
-        except Exception as e:
-            return types.CallToolResult(content=[types.TextContent(type="text", text=f"Knowledge search failed: {str(e)}")], isError=True)
+        if self.service is None:
+            raise RuntimeError("Knowledge retrieval service is not initialized")
+        results = (await self.service.retrieve(query=request.query, filters=request.filters))[: request.top_k]
+        data = {"results": [{"content": r.text, "citation": asdict(Citation.from_retrieval_result(r))} for r in results]}
+        return types.CallToolResult(content=[types.TextContent(type="text", text=json.dumps(data, ensure_ascii=False))], structured_content=data)

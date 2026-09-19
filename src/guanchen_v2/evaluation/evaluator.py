@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
-from guanchen_v2.evaluation.models import EvaluationCase, EvaluationResult
+
 from guanchen_v2.evaluation.metrics import Metric
+from guanchen_v2.evaluation.models import EvaluationCase, EvaluationResult
+
 
 class CapabilityEvaluator(ABC):
     def __init__(self, capability: str, metrics: list[Metric] | None = None):

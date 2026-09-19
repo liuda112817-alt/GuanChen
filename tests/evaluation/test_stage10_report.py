@@ -1,16 +1,15 @@
 import pytest
-import os
-from pathlib import Path
+
 from guanchen_v2.evaluation.reporting import Stage10EvaluationReport
 
 
 @pytest.mark.asyncio
-async def test_report_generation_mock(monkeypatch):
+async def test_report_generation_mock(tmp_path):
     """Mock 测试报告生成的格式验证（绕过 DB）"""
     import dataclasses
 
     # 模拟一份生成的报告写入
-    reports_dir = Path("reports")
+    reports_dir = tmp_path / "reports"
     reports_dir.mkdir(exist_ok=True)
     json_path = reports_dir / "stage10_report.json"
 

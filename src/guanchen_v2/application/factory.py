@@ -1,6 +1,9 @@
 import asyncio
+import time
 import uuid
 from contextlib import asynccontextmanager
+from dataclasses import asdict
+from datetime import datetime, timezone
 
 from guanchen_v2.agents.bazi.runtime import BaziAgentRuntime
 from guanchen_v2.agents.knowledge.agent import KnowledgeAgent
@@ -29,7 +32,9 @@ from guanchen_v2.memory.models import MemoryBase
 from guanchen_v2.memory.selector import MemorySelector
 from guanchen_v2.memory.stores import PostgresDecisionRecordStore, PostgresDreamRecordStore
 from guanchen_v2.observability.context import TraceContext
+from guanchen_v2.observability.events import ObservabilityEvent
 from guanchen_v2.observability.integration import reset_tracer, set_tracer
+from guanchen_v2.observability.logger import log_event
 from guanchen_v2.observability.metrics import MetricsCollector
 from guanchen_v2.observability.tracer import Tracer
 from guanchen_v2.router.adapters.bazi import BaziAgentAdapter
@@ -70,12 +75,14 @@ class GuanChenApplication:
         checkpointer,
         retrieval,
         llm=None,
+        trace_sink=None,
     ):
         self.settings = settings
         self.session_factory = session_factory
         self.checkpointer = checkpointer
         self.retrieval = retrieval
         self.llm = llm or LLMClient.from_settings(settings)
+        self.trace_sink = trace_sink
 
         self._locks = {}
 
@@ -122,9 +129,7 @@ class GuanChenApplication:
                     self.retrieval,
                 )
             ),
-            IntentType.DREAM: DreamAgentAdapter(
-                dream
-            ),
+            IntentType.DREAM: DreamAgentAdapter(dream),
             IntentType.LIUYAO: LiuyaoAgentAdapter(
                 liuyao,
                 PostgresDecisionRecordStore(
@@ -191,6 +196,7 @@ class GuanChenApplication:
         token = set_tracer(
             tracer,
         )
+        started = time.perf_counter()
 
         try:
             with tracer.span(
@@ -205,25 +211,41 @@ class GuanChenApplication:
                 )
 
                 async with lock:
-                    return await self.for_session(
-                        session_id
-                    ).execute(
+                    result = await self.for_session(session_id).execute(
                         session_id,
                         user_query,
                         **kwargs,
                     )
+                    tracer.run.status = result.status
+                    return result
+
+        except BaseException:
+            tracer.run.status = "FAILED"
+            raise
 
         finally:
+            tracer.run.latency_ms = (time.perf_counter() - started) * 1000
             reset_tracer(
                 token,
             )
+            log_event(
+                ObservabilityEvent(
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    trace_id=tracer.run.trace_id,
+                    component="application",
+                    event_type="RUN",
+                    status=tracer.run.status,
+                    duration_ms=tracer.run.latency_ms,
+                    metadata=asdict(tracer.run),
+                )
+            )
+            if self.trace_sink is not None:
+                self.trace_sink(tracer.run)
 
 
 @asynccontextmanager
 async def open_application(settings):
-    database = create_database_runtime(
-        database_url=settings.database_url
-    )
+    database = create_database_runtime(database_url=settings.database_url)
 
     pool = None
 
@@ -231,17 +253,11 @@ async def open_application(settings):
         await database.init_schema()
 
         async with database.engine.begin() as conn:
-            await conn.run_sync(
-                MemoryBase.metadata.create_all
-            )
+            await conn.run_sync(MemoryBase.metadata.create_all)
 
-        saver, pool = await PostgresCheckpointerFactory.create(
-            settings.database_url
-        )
+        saver, pool = await PostgresCheckpointerFactory.create(settings.database_url)
 
-        retrieval = await build_retrieval_service(
-            database.session_factory
-        )
+        retrieval = await build_retrieval_service(database.session_factory)
 
         yield GuanChenApplication(
             settings,

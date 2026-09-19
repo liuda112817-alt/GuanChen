@@ -1,0 +1,365 @@
+{
+  "passed": true,
+  "transport": "streamable-http",
+  "unauthorized_rejected": true,
+  "invalid_input_rejected": true,
+  "tools": {
+    "calculate_bazi": {
+      "passed": true,
+      "output": {
+        "year_pillar": {
+          "gan_zhi": {
+            "stem": "己",
+            "branch": "巳",
+            "gan_zhi": "己巳"
+          },
+          "stem_ten_god": "伤官",
+          "hidden_stems": [
+            {
+              "stem": "丙",
+              "ten_god": "比肩",
+              "element": "火"
+            },
+            {
+              "stem": "庚",
+              "ten_god": "偏财",
+              "element": "金"
+            },
+            {
+              "stem": "戊",
+              "ten_god": "食神",
+              "element": "土"
+            }
+          ],
+          "stem_element": "土",
+          "branch_element": "火"
+        },
+        "month_pillar": {
+          "gan_zhi": {
+            "stem": "丙",
+            "branch": "子",
+            "gan_zhi": "丙子"
+          },
+          "stem_ten_god": "比肩",
+          "hidden_stems": [
+            {
+              "stem": "癸",
+              "ten_god": "正官",
+              "element": "水"
+            }
+          ],
+          "stem_element": "火",
+          "branch_element": "水"
+        },
+        "day_pillar": {
+          "gan_zhi": {
+            "stem": "丙",
+            "branch": "寅",
+            "gan_zhi": "丙寅"
+          },
+          "stem_ten_god": null,
+          "hidden_stems": [
+            {
+              "stem": "甲",
+              "ten_god": "偏印",
+              "element": "木"
+            },
+            {
+              "stem": "丙",
+              "ten_god": "比肩",
+              "element": "火"
+            },
+            {
+              "stem": "戊",
+              "ten_god": "食神",
+              "element": "土"
+            }
+          ],
+          "stem_element": "火",
+          "branch_element": "木"
+        },
+        "hour_pillar": {
+          "gan_zhi": {
+            "stem": "甲",
+            "branch": "午",
+            "gan_zhi": "甲午"
+          },
+          "stem_ten_god": "偏印",
+          "hidden_stems": [
+            {
+              "stem": "丁",
+              "ten_god": "劫财",
+              "element": "火"
+            },
+            {
+              "stem": "己",
+              "ten_god": "伤官",
+              "element": "土"
+            }
+          ],
+          "stem_element": "木",
+          "branch_element": "火"
+        },
+        "da_yun": {
+          "direction": "backward",
+          "start_offset": {
+            "years": 8,
+            "months": 4,
+            "days": 0,
+            "hours": 0
+          },
+          "start_at": "1998-05-01T12:30:00",
+          "periods": [
+            {
+              "index": 1,
+              "start_year": 1998,
+              "start_age": 9,
+              "gan_zhi": {
+                "stem": "乙",
+                "branch": "亥",
+                "gan_zhi": "乙亥"
+              }
+            },
+            {
+              "index": 2,
+              "start_year": 2008,
+              "start_age": 19,
+              "gan_zhi": {
+                "stem": "甲",
+                "branch": "戌",
+                "gan_zhi": "甲戌"
+              }
+            },
+            {
+              "index": 3,
+              "start_year": 2018,
+              "start_age": 29,
+              "gan_zhi": {
+                "stem": "癸",
+                "branch": "酉",
+                "gan_zhi": "癸酉"
+              }
+            },
+            {
+              "index": 4,
+              "start_year": 2028,
+              "start_age": 39,
+              "gan_zhi": {
+                "stem": "壬",
+                "branch": "申",
+                "gan_zhi": "壬申"
+              }
+            },
+            {
+              "index": 5,
+              "start_year": 2038,
+              "start_age": 49,
+              "gan_zhi": {
+                "stem": "辛",
+                "branch": "未",
+                "gan_zhi": "辛未"
+              }
+            },
+            {
+              "index": 6,
+              "start_year": 2048,
+              "start_age": 59,
+              "gan_zhi": {
+                "stem": "庚",
+                "branch": "午",
+                "gan_zhi": "庚午"
+              }
+            },
+            {
+              "index": 7,
+              "start_year": 2058,
+              "start_age": 69,
+              "gan_zhi": {
+                "stem": "己",
+                "branch": "巳",
+                "gan_zhi": "己巳"
+              }
+            },
+            {
+              "index": 8,
+              "start_year": 2068,
+              "start_age": 79,
+              "gan_zhi": {
+                "stem": "戊",
+                "branch": "辰",
+                "gan_zhi": "戊辰"
+              }
+            },
+            {
+              "index": 9,
+              "start_year": 2078,
+              "start_age": 89,
+              "gan_zhi": {
+                "stem": "丁",
+                "branch": "卯",
+                "gan_zhi": "丁卯"
+              }
+            }
+          ]
+        },
+        "calculation_method": {
+          "library": "lunar_python",
+          "library_version": "1.4.8",
+          "late_zi_sect": 2,
+          "yun_sect": 1,
+          "time_basis": "local_civil_time_as_provided",
+          "true_solar_time": false,
+          "birth_place_affects_calculation": false
+        },
+        "day_master": "丙"
+      }
+    },
+    "knowledge_search": {
+      "passed": true,
+      "output": {
+        "results": [
+          {
+            "content": "夫正官者,甲见辛之类。乃阴见阳为官,阳见阴为官。阴阳配合成其道也。\n大抵要行官旺乡,月令是也。月令者,提纲也。看命先看提纲,方看其余。既曰正官,运复行得官旺之乡,\n凡事有成,却又行不得伤官之地。行财旺之乡,皆是作福之处。\n正官乃贵气之物,大忌刑冲破害,及年月时中皆有官星隐露,恐福渺矣。又须看年时上别有何者入格,作福\n会处,方可断其吉凶。苟一途而执取之,则不能通变,必有差之毫厘,谬以千里之患。经曰:通变以为神者\n是也。\n正官或多,反不为福,何以言之?盖人之命宜得中和之气,太过与不及同。中和之气为福厚,偏党之克为灾\n殃。既用提纲作正官,年时支干位或有一偏官,便难矣,不可不仔细以轻重推测也。\n又曰:於月令得之是也,喜身旺印绶。如果用辛官,喜土生官,最怕刑冲破害,羊刃七杀为贫命。如时干逢\n杀,乃官杀混杂,盖四柱有刑冲害,皆不为贵命看。官来克我,我去克官,不为害。一位若两官不妨。若月\n令中有正官,时干支有偏官,便难以正官言之。\n且如甲用辛为官,生於八月中气之後,金旺在酉,故谓之正官。如天干不透出辛字,却地支有巳酉丑,虽不\n生於八月中气之後,亦可言官。大要身旺,时辰归於甲木旺处。如岁时透出正官,地支又有官局,却不拘八\n月中气之後。\n大率官星,须得印绶身旺则发。若无伤官破印,身不弱者,便为贵命。如命中有官星而行伤官之运,则不\n吉,必待印绶、官星旺运可发,必得官。\n眉批:甲见辛为正官,乙见庚为正官,丙见癸为正官,丁见壬为正官,戊见乙为正官,己见甲为正官,以下\n仿此。年为君,月为五行君之令,谓之月令。正官无印乃非真官,故喜身旺财旺。“巳酉丑金局”,《四言独\n步》云,八月官星、大忌卯丁、卯丁克破、有情无情。诀曰,正气官星只用支,更详财气到年时,若还四支\n无冲破,富贵双全折桂枝。",
+            "citation": {
+              "chunk_id": "cef7f2191382aa72596f82fd1d7b997b",
+              "document_id": "d6e5d7f32e9ebe88bb28723bca43365f",
+              "source_title": "《渊海子平》",
+              "section": "卷之二 / 正官论"
+            }
+          },
+          {
+            "content": "正官须在月中求,天破无伤贵不休,玉勒金鞍真富贵,两行旌节上皇州。\n正气官星月上推,无冲无破始为奇,中年岁运来相助,将相公侯总可为。\n正官仁德性情纯,词馆文章可立身,官印相生逢岁运,玉堂金马坐朝臣。\n正官大抵要身强,气弱须求运旺方,岁运更逢生旺地,无冲无破是荣昌。\n日干为主透官星,须要提纲见丙丁,金水相生成下格,火来拘聚旺财名。\n辛日透丙月逢寅,格中反化发财根,官星不许重相见,运至冲刑怕酉申。\n八月官星得正名,格中大怕卯和丁,若还柱内去其忌,运亦如之贵亦宁。\n补:\n大抵官星祸福真,正偏杂乱太无情,露官藏杀多为福,露杀藏官大祸兴。\n正气官星用月支,喜逢财印到年时,破害冲空俱不犯,富贵双全报尔知。\n官星不可被刑冲,官杀同来吉变凶,化杀为官方是吉,变官为杀祸重重。\n生月官星坐禄乡,日辰生旺福无疆,有财有印无伤破,年少成名坐玉堂。\n月逢正禄号真官,不犯刑伤禄最宽,日主兴隆名利显,运逢财印步金銮。\n印多官多为贵命,官旺身衰反为病,官多身旺化为财,财旺身衰贫病并。\n正官大抵要纯和,四柱无伤擢显科,时上喜逢财健旺,柱中欣见印生多。\n提纲独遇为真贵,年位重逢乃太多,别处若有杀来混,反为辛苦受奔波。\n眉批:“月中”,月令支中,如甲日生酉月,酉工辛金是官也。有官无印不得为掌印之职位,佐二清闲之职。\n“玉堂”,翰林院堂名,宋徽宗飞帛书“玉堂”二字。“金马”,汉未央宫侧鼎名,待诏近门为金马门,此言己以\n甲为官喜火,火生土为贵。辛金月寅,以丙为官,官且弱,寅乃木旺,辛以木为财反旺。甲以辛酉为官,忌\n见丁卯伤之。",
+            "citation": {
+              "chunk_id": "2c42e4659344daac7036cd207b87334a",
+              "document_id": "49df1ad7d2185f5ead1a725f7d71aa6a",
+              "source_title": "《渊海子平》",
+              "section": "卷之五 / 正官诗诀"
+            }
+          },
+          {
+            "content": "如甲日酉辛时,乙日申庚时例。时上官星与月亦同,但力轻微,发福多在晚年,或生贤子,要有印助。古歌\n云:正官有用不须多,多则伤身少则和,日旺再逢生印绶,定须平步擢高科。",
+            "citation": {
+              "chunk_id": "01ccf4aaf62a296dd1cda6b0007ca73f",
+              "document_id": "5fa0564463c4400bb45cd282e4eef862",
+              "source_title": "《三命通会》",
+              "section": "时上正官"
+            }
+          },
+          {
+            "content": "甲见乙,乙见甲为刃,柱有亥午为刃长生。\n更得财资,煞印化刃,极贵。\n司要枢,总戎政,因劫带印以资官。\n月令时上正官,要羊刃资之。\n如甲用辛为官,有乙字资官是也。\n伸枉抑,理冤愆,为财生煞而助印。\n四柱七煞重叠,又得财官资助,则煞得势,复生乎印矣。\n进直言,而趋金阙,因煞刃两露于天干。\n此是煞格。而煞刃并现岁月时中。\n居翰苑而掌丝纶,为正官归禄于四柱。\n归禄,乃正官。如丙用癸为官,有子字,则癸禄居子,在冬三月生,妙。《赋》又云:“掌丝纶之命,列玉\n堂之职,因贵禄而得清奇是也。\n年正印而月正官,居国监翰林之任。\n正官喜现于月令之中,正印要露于岁元之上。\n不见冲克之神,准上文。\n格清奇而时得令,唱鸿胪玉殿之名。\n格局纯和不杂,用神得令有气,无刑冲、破害,大贵之造。《赋》又云:“格清局正,玉殿传胪”是也。\n平邦国,统六师,赖官星变为天德。\n(解见前。)\n理阴阳,登宰辅,因禄马又带长生。\n正财、正官,俱有长生。得刃生食,食生财,财生官,官生印,印生身,有周流不息之妙,必主大贵。\n《赋》云:财官有蒂,调和燮理之权。有蒂长生是也。\n财官长生就贵长生,指所居长生之地言,不必要刃食相生解。\n格局纯和,而日干自弱,览泉石而好幽栖。\n用神虽得时,日主衰不胜,却为林泉晦迹之人。\n遇运扶身,亦发。\n格局薄弱,而用神轻微,纵资生而无过小职。\n如其所用之神,不得时令,纵得资益之字,不过小官。\n比前格局纯和者不同。\n土重而支神厚载,畏元武而喜青龙。格局苟逢,必膺大贵。\n如戊己日,柱中又重戊己字,或得一申字在地支,是纯柔顺之道。赋形有定之方,德合无疆坤之大也。值此\n象大贵。\n忌壬癸,喜甲乙。运同。\n木盛而土厚逢荧,顺东方而行坤地。柱运顺和,定显功名。\n天于甲乙一气,地支戊己重叠,却得寅午戌一字,顺东方,木得地也。行坤地,土得位也。\n如是,则木愈盛而土愈厚矣。四九上下应之。",
+            "citation": {
+              "chunk_id": "419785d421d5d38cb22625b1e997ca89",
+              "document_id": "cd0265810f51ce0b44d0f012e3cfaf7e",
+              "source_title": "《三命通会》",
+              "section": "真宝赋"
+            }
+          },
+          {
+            "content": "其生甚微,所以喜印绶,怕财克。\n主少年招受主恩,大概与印格书同论。\n如\n乙酉 乙酉 乙酉 甲申,是此格也。\n喜忌篇云,五行绝处,即是胎元,生日逢之,名曰受气。\n岁月正官,七煞混淆人下贱。时日独强专制,职重权高。\n月时七煞,正官杂乱病交侵。岁运冲开合去,官清名显。\n犹嫌过制,最忌争强。\n喜忌篇云:四柱纯煞有制,定居一品之尊。略见一位正官,官然混杂反贱。类有去官留煞,亦有去煞留官。\n又云:四柱煞旺运纯,身旺为官清贵。\n又云:月令虽近建禄,切忌会煞为凶。\n官星七煞交差,却有合煞为贵,是也。\n此二格,各有所主。\n岁月正官,以官为主,嫌煞混之。\n月时七煞,以煞为主,嫌官乱之。\n时日独强,专制岁运,冲开合去,互文见义也。\n过制则七煞不显,争强则难以去留,其理当细详之。\n如\n壬子 甲辰 己卯 壬申,\n月正官,日下卯为七煞,得申内庚金,合卯中乙木之煞为贵。\n又如,张侍郎八字:乙日以庚为正官,申内庚金,近七月生,庚旺辛衰,六月丁火旺,为去煞留官。故贵。\n又如:\n丙午 丙申 甲寅 丁卯,丙丁虽多,\n不敌月令之煞,又行官旺运,身旺变鬼为官,故贵。\n天元无气,却宜中下兴隆。\n此印绶格也。如甲乙生于冬月,天元无气,地支有亥子水生木,为兴隆之类。又如丁亥、丁丑等日,丁火无\n气,又有壬癸来克,亥子得之为党,反能生出甲木,为地支兴隆。喜土来克财,丑中得之为财,亦利之类。\n古人论中下,以日、时支言。\n如日干月令无气,若所坐之支及时得地,亦为成实之命。\n若无气,而日时又在衰败之乡,则终身偃蹇可知矣。\n《喜忌篇》云:凡见天元太弱,内有弱处复生,是也)\n年本偏官,须忌始终克害。\n此岁德格也。如甲日逢庚申太岁,为年上偏官,一名元神,一名孤辰,其煞最重,终身不可除去,故主始终\n克害。\n克害,非专指祖父六亲,本身亦在其中矣。\n如\n丁巳 丁未 辛巳 壬辰,喜一壬合二丁为制。",
+            "citation": {
+              "chunk_id": "16adce4b470556767d2859d06de497fd",
+              "document_id": "8367f48713c4b783a00f0cd552d7e1bc",
+              "source_title": "《三命通会》",
+              "section": "明通赋二"
+            }
+          }
+        ]
+      }
+    },
+    "cast_hexagram": {
+      "passed": true,
+      "output": {
+        "casting_method": "manual_six_lines",
+        "line_order": "bottom_to_top",
+        "lines": [
+          {
+            "position": 1,
+            "value": 7,
+            "polarity": "yang",
+            "moving": false,
+            "heavenly_stem": "己",
+            "earthly_branch": "卯",
+            "element": "木",
+            "six_relative": "子孙",
+            "six_spirit": null,
+            "is_shi": false,
+            "is_ying": false
+          },
+          {
+            "position": 2,
+            "value": 8,
+            "polarity": "yin",
+            "moving": false,
+            "heavenly_stem": "己",
+            "earthly_branch": "丑",
+            "element": "土",
+            "six_relative": "官鬼",
+            "six_spirit": null,
+            "is_shi": false,
+            "is_ying": false
+          },
+          {
+            "position": 3,
+            "value": 7,
+            "polarity": "yang",
+            "moving": false,
+            "heavenly_stem": "己",
+            "earthly_branch": "亥",
+            "element": "水",
+            "six_relative": "兄弟",
+            "six_spirit": null,
+            "is_shi": true,
+            "is_ying": false
+          },
+          {
+            "position": 4,
+            "value": 8,
+            "polarity": "yin",
+            "moving": false,
+            "heavenly_stem": "戊",
+            "earthly_branch": "申",
+            "element": "金",
+            "six_relative": "父母",
+            "six_spirit": null,
+            "is_shi": false,
+            "is_ying": false
+          },
+          {
+            "position": 5,
+            "value": 7,
+            "polarity": "yang",
+            "moving": false,
+            "heavenly_stem": "戊",
+            "earthly_branch": "戌",
+            "element": "土",
+            "six_relative": "官鬼",
+            "six_spirit": null,
+            "is_shi": false,
+            "is_ying": false
+          },
+          {
+            "position": 6,
+            "value": 8,
+            "polarity": "yin",
+            "moving": false,
+            "heavenly_stem": "戊",
+            "earthly_branch": "子",
+            "element": "水",
+            "six_relative": "兄弟",
+            "six_spirit": null,
+            "is_shi": false,
+            "is_ying": true
+          }
+        ],
+        "primary_hexagram": {
+          "name": null,
+          "upper_trigram": "坎",
+          "lower_trigram": "离"
+        },
+        "changed_hexagram": null,
+        "moving_line_positions": [],
+        "coin_tosses": []
+      }
+    }
+  }
+}

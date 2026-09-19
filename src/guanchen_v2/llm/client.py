@@ -18,6 +18,7 @@ from guanchen_v2.llm.exceptions import (
     LLMTransientProviderError,
 )
 from guanchen_v2.llm.provider import build_chat_model
+from guanchen_v2.observability.integration import get_tracer
 
 StructuredT = TypeVar(
     "StructuredT",
@@ -43,6 +44,16 @@ def _translate_provider_error(
             ValidationError,
         ),
     ):
+        tracer = get_tracer()
+        if tracer is not None:
+            with tracer.span("structured_output", "VALIDATION") as span:
+                span.status = "FAILED"
+                span.metadata["error"] = type(exc).__name__
+                if isinstance(exc, ValidationError):
+                    span.metadata["invalid_fields"] = [
+                        {"loc": list(error["loc"]), "type": error["type"]}
+                        for error in exc.errors(include_input=False, include_context=False, include_url=False)
+                    ]
         return LLMStructuredOutputError("结构化输出失败")
 
     if isinstance(

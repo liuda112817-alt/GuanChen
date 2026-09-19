@@ -1,5 +1,6 @@
 from guanchen_v2.evaluation.evaluator import CapabilityEvaluator
 
+
 class EvaluationRegistry:
     def __init__(self) -> None:
         self._evaluators: dict[str, CapabilityEvaluator] = {}

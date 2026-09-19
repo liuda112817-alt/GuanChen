@@ -1,6 +1,7 @@
 from typing import Any
 
 from guanchen_v2.dream.runtime import DreamAgentRuntime
+from guanchen_v2.observability.decorators import trace
 from guanchen_v2.router.contracts import RequiredDataType
 from guanchen_v2.router.errors import RouterDispatchError
 from guanchen_v2.router.requirements import RequirementContext
@@ -10,6 +11,7 @@ class DreamAgentAdapter:
     def __init__(self, runtime: DreamAgentRuntime):
         self._runtime = runtime
 
+    @trace("dream", "AGENT")
     async def invoke(
         self,
         query: str,
