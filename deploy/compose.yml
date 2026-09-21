@@ -1,0 +1,68 @@
+name: guanchen
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: guanchen
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}
+      POSTGRES_DB: guanchen
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U guanchen -d guanchen]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      GUANCHEN_APP_ENV: production
+      GUANCHEN_DATABASE_URL: postgresql+asyncpg://guanchen:${POSTGRES_PASSWORD}@db:5432/guanchen
+      GUANCHEN_API_CORS_ORIGINS: '[]'
+      GUANCHEN_REDIS_URL: redis://redis:6379/0
+      GUANCHEN_API_TRUST_PROXY: 'true'
+    volumes:
+      - model_cache:/app/model-cache
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging: *logging
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: [redis-server, --maxmemory, 64mb, --maxmemory-policy, noeviction, --appendonly, 'yes']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    logging: *logging
+  web:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${WEB_PORT:-8080}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+    logging: *logging
+volumes:
+  postgres_data:
+  model_cache:
+  redis_data:

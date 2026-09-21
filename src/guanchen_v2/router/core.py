@@ -93,6 +93,7 @@ class HighPrecisionRuleRouter:
     )
 
     _BAZI_PATTERNS = (
+        re.compile(r"^(请)?(用|按|通过|根据)(我的)?八字(帮我|为我|给我|看看|分析|解读).*"),
         re.compile(r"^(帮我)?(看看|算算|分析|解读|讲讲|排)(一下)?(我的)?(八字|命盘).*"),
         re.compile(r"^我的八字.*"),
         re.compile(r"^(想问|想请|请帮我|帮我看看)(问)?(一下)?(我的)?八字.*"),
@@ -105,6 +106,7 @@ class HighPrecisionRuleRouter:
     )
 
     _LIUYAO_PATTERNS = (
+        re.compile(r"^(请)?(用|按|通过)六爻(帮我|为我|给我|看看|分析|起卦).*"),
         re.compile(r"^(帮我)?(起一卦|起个卦|卜一卦|算一卦|摇一卦|占一卦).*"),
         re.compile(r".*(起一卦|起个卦|卜一卦|算一卦|摇一卦|占一卦|卜卦|摇卦|占卦).*"),
         re.compile(r".*(卜|占)一下.*"),

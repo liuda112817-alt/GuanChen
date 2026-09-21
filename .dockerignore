@@ -1,0 +1,15 @@
+.git
+.venv
+.env
+**/.env.local
+deploy/.env
+deploy/certs
+deploy/backups
+frontend/node_modules
+frontend/dist
+frontend/test-results
+frontend/playwright-report
+reports
+.pytest_cache
+.ruff_cache
+**/__pycache__

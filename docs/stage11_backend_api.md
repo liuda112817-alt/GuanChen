@@ -1,6 +1,8 @@
 # Stage 11 后端与 Bolt 对接契约
 
-本次范围按用户要求调整为 Stage 1–11 后端。UI 由 Bolt 后续制作；不把后端 HTTP 验收当成网页端验收。后端提供四个 Agent、按需补资料、Safety、持久化匿名会话、HITL、引用及 SSE。
+后端提供四个 Agent、按需补资料、Safety、持久化匿名会话、HITL、引用及 SSE。UI 现已由本仓库 `frontend/` 直接实现，替代原 Bolt 计划；网页验收与启动说明见 [前后端与部署交接](frontend_and_deployment.md)，不把后端 HTTP 验收当成网页端验收。
+
+可直接交给 Bolt 的产品、视觉、交互和 API 对接 Prompt 见 [bolt_frontend_prompt.md](bolt_frontend_prompt.md)。
 
 ## 启动
 

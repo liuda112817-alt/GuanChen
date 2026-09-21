@@ -42,6 +42,8 @@ async def main():
         total_docs.extend(docs)
 
     print(f"解析完毕。共提取出 {len(total_docs)} 个逻辑文档 (KnowledgeDocument)。")
+    if not total_docs:
+        raise RuntimeError("未找到可导入语料，停止初始化。")
     print("开始全量入库 (切分 -> 向量化 -> PostgreSQL UPSERT)...")
 
     # 4. 执行写入
@@ -59,6 +61,8 @@ async def main():
     elapsed = time.perf_counter() - start_time
     print("=" * 60)
     print(f"入库作业完成！成功: {success_count}/{len(total_docs)}，耗时: {elapsed:.2f} 秒。")
+    if success_count != len(total_docs):
+        raise RuntimeError("部分语料入库失败，请修复错误后重试，不应启动不完整知识库。")
     print("你现在可以执行 scripts/eval_retrieval.py 开启检索评测了。")
 
 

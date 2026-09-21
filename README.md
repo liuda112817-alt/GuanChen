@@ -174,13 +174,13 @@ User Request
 
 Stage 1–11 后端当前实现与验收见 [阶段状态](docs/stage_status.md)、[Stage 11 后端 API 说明](docs/stage11_backend_api.md) 和 [统一评测报告](reports/stage11_final/report.md)。
 
-回答表达规范和模型 thinking 选择见 [回答表达设计](docs/response_style.md)。
+回答表达规范和模型 thinking 选择见 [回答表达设计](docs/response_style.md)。观尘前端位于 `frontend/`，本地启动、联调验收与腾讯云部署步骤见 [前后端与部署交接](docs/frontend_and_deployment.md)；原 [前端设计稿](docs/bolt_frontend_prompt.md) 保留为设计背景。
 
 - 真实应用：`uv run python scripts/chat_cli.py`；依赖 `.env`、PostgreSQL + pgvector 和已导入语料。
 - MCP：官方 SDK v2、Streamable HTTP、三个复用领域 service 的工具，见 [使用说明](docs/mcp_usage.md)。内部 Agent 直接调用 service，MCP 用于外部应用互操作。
 - Evaluation：`uv run python scripts/run_evals.py --include-stage11` 一条命令重跑 Stage 1–11 后端的回归、集成、MCP、Router、Retrieval、固定端到端场景和真实 API 验收，输出 JSON + Markdown，失败返回非零。
 - Observability：LLM/token、Tool、Retrieval、Graph node 和每路由调用上限；日志 stderr，无需 LangSmith。
-- Stage 11 后端（Safety / FastAPI / SSE / API contract）已完成；Bolt UI 对接及 Stage 12（Redis / 部署）仍为后续建设。
+- Stage 11 前端已在本仓库实现，连接 Safety / FastAPI / SSE / API contract；`deploy/` 提供单机生产部署准备。真实云端上线和 Stage 12 分布式能力需单独验收。
 
 ---
 

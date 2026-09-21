@@ -1,0 +1,8 @@
+# Host Caddy terminates HTTPS; Docker web only listens on localhost:8080.
+guanchen.online, www.guanchen.online {
+    encode gzip
+    reverse_proxy 127.0.0.1:8080 {
+        header_up X-Real-IP {remote_host}
+        flush_interval -1
+    }
+}

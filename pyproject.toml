@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "redis>=5,<7",
     "asyncpg>=0.31.0",
     "bm25s>=0.3.11",
     "ichingpy>=0.1.10",
@@ -52,6 +53,14 @@ line-length = 150
 [[tool.uv.index]]
 url = "https://mirrors.aliyun.com/pypi/simple/"
 default = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]

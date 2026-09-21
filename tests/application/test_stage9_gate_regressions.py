@@ -47,6 +47,23 @@ async def test_new_dream_enters_agent_and_followup_stays_in_task():
 
 
 @pytest.mark.asyncio
+async def test_explicit_bazi_request_leaves_previous_dream_context():
+    dream, bazi = adapter(), adapter()
+    orch = build_orch({IntentType.DREAM: dream, IntentType.BAZI: bazi})
+    await orch.execute("switch-domain", "我梦见在学校迷路，有点着急")
+    response = await orch.execute("switch-domain", "请用八字帮我看看事业。")
+    assert response.status == "needs_input"
+    assert response.used_intents == (IntentType.BAZI,)
+    assert dream.invoke.await_count == 1
+    bazi.invoke.assert_not_awaited()
+
+
+def test_explicit_liuyao_method_request_routes_to_confirmation_workflow():
+    decision = HighPrecisionRuleRouter().match("请用六爻帮我看看：未来三个月是否换工作？")
+    assert decision.primary_intent == IntentType.LIUYAO
+
+
+@pytest.mark.asyncio
 async def test_birth_supplements_across_rebuild_keep_original_question():
     bazi = adapter()
     store = InMemoryMemoryStore()

@@ -19,3 +19,17 @@ wheels/
 # Local evaluation diagnostics (JSON / Markdown baselines remain tracked)
 reports/**/*.log
 reports/**/*.xml
+
+# Web application and deployment secrets
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/*.tsbuildinfo
+frontend/.env.local
+deploy/.env
+deploy/certs/
+deploy/backups/
+
+# Private job-search materials are not project source.
+docs/job_search/

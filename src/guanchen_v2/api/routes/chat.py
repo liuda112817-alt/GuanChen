@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Header, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from guanchen_v2.api.contracts import (
     ChatRequest,
@@ -12,10 +12,30 @@ from guanchen_v2.api.contracts import (
     SessionResponse,
 )
 from guanchen_v2.api.dependencies import get_chat_service
+from guanchen_v2.api.reliability import execute_request
 from guanchen_v2.api.service import ChatApplicationService
 from guanchen_v2.api.streaming import stream_events
 
 router = APIRouter(tags=["conversation"])
+
+
+@router.get("/health", include_in_schema=False)
+async def health(request: Request):
+    # ASGI serves requests only after lifespan has initialized the application.
+    # This is liveness, not an end-to-end database/provider availability test.
+    return {"status": "ok"}
+
+
+@router.get("/ready", include_in_schema=False)
+async def ready(request: Request):
+    check = getattr(request.app.state, "readiness", None)
+    if check is None:
+        return JSONResponse({"status": "not_ready"}, status_code=503)
+    try:
+        await check()
+    except Exception:
+        return JSONResponse({"status": "not_ready"}, status_code=503)
+    return {"status": "ready"}
 
 
 async def chat_session(request, payload, authorization):
@@ -48,7 +68,7 @@ async def chat(
     service: ChatApplicationService = Depends(get_chat_service),
 ):
     payload, token = await chat_session(request, payload, authorization)
-    result = await service.chat(payload)
+    result = await execute_request(request, payload, lambda: service.chat(payload))
     result.session_token = token
     return result
 
@@ -61,7 +81,7 @@ async def chat_stream(
     service: ChatApplicationService = Depends(get_chat_service),
 ):
     payload, token = await chat_session(request, payload, authorization)
-    return streaming(lambda: service.chat(payload), payload.session_id, token)
+    return streaming(lambda: execute_request(request, payload, lambda: service.chat(payload)), payload.session_id, token)
 
 
 @router.post("/resume", response_model=ChatResponse)
@@ -72,7 +92,7 @@ async def resume(
     service: ChatApplicationService = Depends(get_chat_service),
 ):
     await request.app.state.session_access.authorize(payload.session_id, authorization)
-    return await service.resume(payload)
+    return await execute_request(request, payload, lambda: service.resume(payload))
 
 
 @router.post("/resume/stream", response_class=StreamingResponse)
@@ -83,7 +103,7 @@ async def resume_stream(
     service: ChatApplicationService = Depends(get_chat_service),
 ):
     await request.app.state.session_access.authorize(payload.session_id, authorization)
-    return streaming(lambda: service.resume(payload), payload.session_id)
+    return streaming(lambda: execute_request(request, payload, lambda: service.resume(payload)), payload.session_id)
 
 
 @router.get("/sessions/{session_id}", response_model=SessionDetailResponse)

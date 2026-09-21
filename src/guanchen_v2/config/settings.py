@@ -45,6 +45,10 @@ class DatabaseSettings(BaseSettings):
 
 
 class APISettings(DatabaseSettings):
+    redis_url: SecretStr | None = None
+    api_rate_limit: int = Field(default=30, ge=1)
+    api_max_concurrent: int = Field(default=2, ge=1, le=32)
+    api_trust_proxy: bool = False
     api_cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173", "http://localhost:3000"])
     api_timeout_seconds: float = Field(default=180, gt=0, le=600)
 
